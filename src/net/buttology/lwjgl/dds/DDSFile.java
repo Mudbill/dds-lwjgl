@@ -41,16 +41,6 @@ import java.util.List;
  * @author Magnus Bull
  */
 public class DDSFile {
-
-	public static void main(String[] args) {
-		DDSFile file = new DDSFile();
-		file.printDebug = true;
-		try {
-			file.loadFile("D:\\System\\UserFiles\\Documents\\GitHub\\LearnOpenGL\\resources\\desertsky256m1.dds");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
 	
 	private static final int GL_COMPRESSED_RGBA_S3TC_DXT1_EXT = 0x83f1;
 	private static final int GL_COMPRESSED_RGBA_S3TC_DXT3_EXT = 0x83f2;
