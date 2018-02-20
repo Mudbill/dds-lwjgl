@@ -127,7 +127,8 @@ public class DDSFile {
 
 		FileInputStream fis = new FileInputStream(file);
 
-		if(printDebug) System.out.println("Total bytes: "+fis.available());
+		int totalByteCount = fis.available();
+		if(printDebug) System.out.println("Total bytes: "+totalByteCount);
 
 		byte[] bMagic = new byte[4];
 		fis.read(bMagic);
@@ -144,11 +145,11 @@ public class DDSFile {
 		fis.read(bHeader);
 		header = new DDSHeader(newByteBuffer(bHeader), printDebug);
 
-		int block_size = 16;
+		int blockSize = 16;
 		if(header.ddspf.sFourCC.equalsIgnoreCase("DXT1")) 
 		{
 			dxtFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
-			block_size = 8;
+			blockSize = 8;
 		}
 		else if(header.ddspf.sFourCC.equalsIgnoreCase("DXT3")) 
 		{
@@ -169,53 +170,57 @@ public class DDSFile {
 			System.err.println("Surface format unknown or not supported: "+header.ddspf.sFourCC);
 		}
 
-		int cubemapDirs;
+		int surfaceCount;
+		totalByteCount -= 128;
 
 		if(header.hasCaps2CubeMap) 
 		{
-			cubemapDirs = 6;
+			surfaceCount = 6;
 			isCubeMap = true; 
 		}
 		else 
 		{
-			cubemapDirs = 1;
+			surfaceCount = 1;
 			isCubeMap = false;
 		}
 
-		imageSize = calculatePitch(block_size);
+		imageSize = calculatePitch(blockSize);
 
 		int size = header.dwPitchOrLinearSize;
 
-		if(printDebug) System.out.println("Calculated Image Size: "+imageSize);
-		if(printDebug) System.out.println("PitchOrLinearSize: "+header.dwPitchOrLinearSize);
-		if(printDebug) System.out.println("Mipcount: "+header.dwMipMapCount);
+		if(printDebug) System.out.println("Calculated pitch: "+imageSize);
+		if(printDebug) System.out.println("Included PitchOrLinearSize: "+header.dwPitchOrLinearSize);
+		if(printDebug) System.out.println("Mipmap count: "+header.dwMipMapCount);
 
-		for(int i = 0; i < cubemapDirs; i++)
+		for(int i = 0; i < surfaceCount; i++)
 		{
-			if(printDebug) System.out.println("Getting main surface "+i+": "+size);
-
 			byte[] bytes = new byte[size];
 
+			if(printDebug) System.out.println("Getting main surface "+i+". Bytes: "+bytes.length);
+
 			fis.read(bytes);
+			totalByteCount -= bytes.length;
 			bdata.add(newByteBuffer(bytes));
 
 			if(header.hasFlagMipMapCount)
 			{
-				int size2 = Math.max(size / 4, 8);
+				int size2 = Math.max(size / 4, blockSize);
 
-				for(int j = 0; j < header.dwMipMapCount; j++)
+				for(int j = 0; j < header.dwMipMapCount-1; j++)
 				{
-					//TODO: For cubemaps, fix the offset that occurs.
-					if(printDebug) System.out.println("Getting secondary surface "+j+". Bytes: "+size2);
 					byte[] bytes2 = new byte[size2];
+
+					if(printDebug) System.out.println("Getting secondary surface "+j+". Bytes: "+bytes2.length);
+					
 					fis.read(bytes2);
+					totalByteCount -= bytes2.length;
 					bdata2.add(newByteBuffer(bytes2));
-					size2 = Math.max(size2 / 4, 8);
+					size2 = Math.max(size2 / 4, blockSize);
 				}
 			}
 		}
 
-		if(printDebug) System.out.println("Remaining bytes: "+fis.available());
+		if(printDebug) System.out.printf("Remaining bytes: %d (%d)%n", fis.available(), totalByteCount);
 		fis.close();
 	}
 

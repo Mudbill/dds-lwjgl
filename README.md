@@ -13,7 +13,7 @@ dds-lwjgl currently has a selection of restrictions, as I originally developed t
 * Supports loading standard 124 byte headers (not extended D3D headers)
 * Supports loading the compression formats: DXT1, DXT3, DXT5
 * Supports reading 2D Textures with and without included mipmaps (though the mipmaps are currently discarded)
-* Supports loading 3D Cubemap textures *without* mipmaps. Cubemaps with mipmaps appear offset.
+* Supports loading 3D Cubemap textures with and without mipmaps (though mipmaps are discarded here as well)
 * Does not support volume maps.
 * Does not support legacy formats.
 
@@ -71,7 +71,7 @@ While working on some personal projects, I had the need to load DDS files for my
 
 After looking for such a library, I only came across 1, as well as a few (quite old) threads around for writing a parser yourself. Since I couldn't get any of these to do what I wanted, I decided to just sit down and make my own.
 
-This small library contains only the core features for what I originally needed, so it is by no means reliable for just any DDS file. As of today, I still need to edit it to fix some bugs, but I felt it usable enough to publish.
+This small library contains only the core features for what I originally needed, so it is by no means reliable for just any DDS file. As of today, I still need to edit it to improve usability, but I felt it usable enough to publish.
 
 I'm also a fairly self-taught programmer, so any feedback is greatly appreciated.
 
