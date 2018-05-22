@@ -5,7 +5,7 @@ dds-lwjgl is a simple DirectDraw Surface (DDS) file parser for the Light-Weight 
 It is a small library aimed at loading DDS files for LWJGL, as DDS files have the added advantage of being decompressed on the GPU, making for faster load times.
 It is by no means an extensive library, and has several limitations (please read below).
 
-Restrictions
+Features
 ------------
 
 dds-lwjgl currently has a selection of restrictions, as I originally developed this for a very specific purpose. Please consider these.
