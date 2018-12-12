@@ -25,12 +25,12 @@ import java.nio.ByteBuffer;
 public class DDSPixelFormat {
 
 	/* Flags */
-	protected static final int DDPF_ALPHAPIXELS 		= 0x1;
-	protected static final int DDPF_ALPHA 				= 0x2;
-	protected static final int DDPF_FOURCC 				= 0x4;
-	protected static final int DDPF_RGB 				= 0x40;
-	protected static final int DDPF_YUV 				= 0x200;
-	protected static final int DDPF_LUMINANCE 			= 0x20000;
+	protected static final int DDPF_ALPHAPIXELS	= 0x00001;
+	protected static final int DDPF_ALPHA 		= 0x00002;
+	protected static final int DDPF_FOURCC 		= 0x00004;
+	protected static final int DDPF_RGB 		= 0x00040;
+	protected static final int DDPF_YUV 		= 0x00200;
+	protected static final int DDPF_LUMINANCE 	= 0x20000;
 	
 	/** Structure size in bytes */
 	protected int 		dwSize;
@@ -74,7 +74,7 @@ public class DDSPixelFormat {
 		dwSize 			= header.getInt();
 		dwFlags 		= header.getInt();
 		dwFourCC	 	= header.getInt();
-		dwRGBBitCount	= header.getInt();
+		dwRGBBitCount		= header.getInt();
 		dwRBitMask	 	= header.getInt();
 		dwGBitMask	 	= header.getInt();
 		dwBBitMask	 	= header.getInt();
@@ -84,12 +84,12 @@ public class DDSPixelFormat {
 		
 		if(dwSize != 32) if(printDebug) System.err.println("Size is not 32!");
 		
-		hasFlagAlphaPixels 		= (dwFlags & DDPF_ALPHAPIXELS) 		== DDPF_ALPHAPIXELS;
-		hasFlagAlpha		 	= (dwFlags & DDPF_ALPHA) 			== DDPF_ALPHA;
-		hasFlagFourCC		 	= (dwFlags & DDPF_FOURCC) 			== DDPF_FOURCC;
-		hasFlagRgb 				= (dwFlags & DDPF_RGB) 				== DDPF_RGB;
-		hasFlagYuv 				= (dwFlags & DDPF_YUV) 				== DDPF_YUV;
-		hasFlagLuminance 		= (dwFlags & DDPF_LUMINANCE) 		== DDPF_LUMINANCE;
+		hasFlagAlphaPixels 	= (dwFlags & DDPF_ALPHAPIXELS) 	== DDPF_ALPHAPIXELS;
+		hasFlagAlpha		= (dwFlags & DDPF_ALPHA) 	== DDPF_ALPHA;
+		hasFlagFourCC		= (dwFlags & DDPF_FOURCC) 	== DDPF_FOURCC;
+		hasFlagRgb 		= (dwFlags & DDPF_RGB) 		== DDPF_RGB;
+		hasFlagYuv 		= (dwFlags & DDPF_YUV) 		== DDPF_YUV;
+		hasFlagLuminance 	= (dwFlags & DDPF_LUMINANCE) 	== DDPF_LUMINANCE;
 		
 		if(hasFlagFourCC) 
 		{
