@@ -22,7 +22,7 @@ This list may change with updates.
 Usage
 -----
 
-[Download the jar](https://github.com/Mudbill/dds-lwjgl/releases) from the releases page and include it in your project's build path, and you'll be able to access the DDSFile class. Using it is simple:
+[Download the jar](https://github.com/Mudbill/dds-lwjgl/releases) from the releases page and include it in your project's build path, and you'll be able to access the `DDSFile` class. Using it is simple:
 
 ```java
 DDSFile file = new DDSFile("path/to/file");
@@ -30,7 +30,7 @@ DDSFile file = new DDSFile("path/to/file");
 
 This will immediately load the file at the given path. You can also supply a `File`.
 
-If you need debug information (I use this a lot), separate them and enable the `printDebug` flag.
+If you need debug information, separate them and enable the `printDebug` flag.
 
 ```java
 DDSFile file = new DDSFile();
