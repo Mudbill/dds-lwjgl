@@ -39,17 +39,36 @@ import java.util.List;
  * <li>Does not support legacy formats.</li>
  * </ul>
  * @author Magnus Bull
+ * @version 2.0.0
  */
 public class DDSFile {
+	
+	/** A 32-bit representation of the character sequence "DDS " which is the magic word for DDS files. */
+	private static final int DDS_MAGIC = 0x20534444;
 	
 	private static final int GL_COMPRESSED_RGBA_S3TC_DXT1_EXT = 0x83f1;
 	private static final int GL_COMPRESSED_RGBA_S3TC_DXT3_EXT = 0x83f2;
 	private static final int GL_COMPRESSED_RGBA_S3TC_DXT5_EXT = 0x83f3;
 
-	public boolean printDebug = false;
-
-	/** A 32-bit representation of the character sequence "DDS " which is the magic word for DDS files. */
-	private static final int DDS_MAGIC = 0x20534444;
+	/** Creates a new ByteBuffer and stores the data within it before returning it. */
+	public static ByteBuffer newByteBuffer(byte[] data) {
+		ByteBuffer buffer = ByteBuffer.allocateDirect(data.length).order(ByteOrder.nativeOrder());
+		buffer.put(data);
+		buffer.flip();
+		return buffer;
+	}
+	
+	/**
+	 * Print a debug message to the standard output. Only if printDebug is enabled.<br>
+	 * This is a shorthand for System.out.printf.
+	 * @param msg
+	 * @param args
+	 */
+	private static void debug(String msg, Object... args) {
+		if(printDebug) System.out.printf(msg, args);
+	}
+	
+	public static boolean printDebug = false;
 
 	/** Stores the magic word for the binary document read */
 	private int 			dwMagic;
@@ -68,9 +87,9 @@ public class DDSFile {
 
 	/** The compression format for the current DDS document */
 	private int 			dxtFormat;
-
-	/** Whether this DDS file is a cubemap or not */
-	private boolean			isCubeMap;
+	
+	/** Used for debugging to capture how long it takes to load a file */
+	private long			startTime;
 
 	/** Empty constructor */
 	public DDSFile() {}
@@ -81,8 +100,7 @@ public class DDSFile {
 	 * @throws IOException 
 	 * @throws FileNotFoundException 
 	 */
-	public DDSFile(String filePath) throws IOException 
-	{
+	public DDSFile(String filePath) throws IOException {
 		this.loadFile(new File(filePath));
 	}
 
@@ -92,8 +110,7 @@ public class DDSFile {
 	 * @throws IOException 
 	 * @throws FileNotFoundException 
 	 */
-	public DDSFile(File file) throws IOException 
-	{
+	public DDSFile(File file) throws IOException {
 		this.loadFile(file);
 	}
 	
@@ -102,25 +119,25 @@ public class DDSFile {
 	 * @param file
 	 * @throws IOException 
 	 */
-	public void loadFile(String file) throws IOException
-	{
+	public void loadFile(String file) throws IOException {
 		this.loadFile(new File(file));
 	}
 
 	/**
 	 * Loads a DDS file.
 	 * @param file
-	 * @throws IOException 
+	 * @throws IOException
+	 * @throws FileNotFoundException
 	 */
-	public void loadFile(File file) throws IOException
-	{
-		if(file.isFile() == false)
-		{
-			System.err.printf("DDS: File not found: '%s'%n",file.getAbsolutePath());
-			return;
+	public void loadFile(File file) throws IOException, FileNotFoundException {
+		if(!file.isFile()) {
+			throw new FileNotFoundException();
 		}
 		
-		if(printDebug) System.out.printf("Loading DDS file: '%s'%n", file.getAbsolutePath());
+		debug("Loading DDS file: '%s'\n", file.getAbsolutePath());
+		if(printDebug) {
+			this.startTime = System.currentTimeMillis(); 
+		}
 		
 		bdata = new ArrayList<ByteBuffer>();
 		bdata2 = new ArrayList<ByteBuffer>(); //TODO: Not properly implemented yet.
@@ -128,89 +145,70 @@ public class DDSFile {
 		FileInputStream fis = new FileInputStream(file);
 
 		int totalByteCount = fis.available();
-		if(printDebug) System.out.println("Total bytes: "+totalByteCount);
+		debug("Total bytes: %d\n", totalByteCount);
 
 		byte[] bMagic = new byte[4];
 		fis.read(bMagic);
 		dwMagic = newByteBuffer(bMagic).getInt();
 
-		if(dwMagic != DDS_MAGIC) 
-		{
-			System.err.println("Wrong magic word! This is not a DDS file.");
+		if(dwMagic != DDS_MAGIC) {
 			fis.close();
-			return;
+			throw new IOException("Wrong magic word! This is not a valid DDS file.");
 		}
 
 		byte[] bHeader = new byte[124];
 		fis.read(bHeader);
-		header = new DDSHeader(newByteBuffer(bHeader), printDebug);
+		header = new DDSHeader(newByteBuffer(bHeader));
+		
+		totalByteCount -= 128;
 
 		int blockSize = 16;
-		if(header.ddspf.sFourCC.equalsIgnoreCase("DXT1")) 
-		{
+		if(header.ddspf.sFourCC.equalsIgnoreCase("DXT1")) {
 			dxtFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
 			blockSize = 8;
 		}
-		else if(header.ddspf.sFourCC.equalsIgnoreCase("DXT3")) 
-		{
+		else if(header.ddspf.sFourCC.equalsIgnoreCase("DXT3")) {
 			dxtFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
 		}
-		else if(header.ddspf.sFourCC.equalsIgnoreCase("DXT5")) 
-		{
+		else if(header.ddspf.sFourCC.equalsIgnoreCase("DXT5")) {
 			dxtFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
 		}
-		else if(header.ddspf.sFourCC.equalsIgnoreCase("DX10")) 
-		{
-			System.err.println("Uses DX10 extended header, which is not supported!");
+		else if(header.ddspf.sFourCC.equalsIgnoreCase("DX10")) {
 			fis.close();
-			return;
+			throw new IOException("Uses DX10 extended header, which is not supported!");
 		}
-		else 
-		{
-			System.err.println("Surface format unknown or not supported: "+header.ddspf.sFourCC);
-		}
-
-		int surfaceCount;
-		totalByteCount -= 128;
-
-		if(header.hasCaps2CubeMap) 
-		{
-			surfaceCount = 6;
-			isCubeMap = true; 
-		}
-		else 
-		{
-			surfaceCount = 1;
-			isCubeMap = false;
+		else {
+			fis.close();
+			throw new IOException("Surface format unknown or not supported: "+header.ddspf.sFourCC);
 		}
 
 		imageSize = calculatePitch(blockSize);
 
+		int surfaceCount = header.hasCaps2CubeMap ? 6 : 1;
 		int size = header.dwPitchOrLinearSize;
 
-		if(printDebug) System.out.println("Calculated pitch: "+imageSize);
-		if(printDebug) System.out.println("Included PitchOrLinearSize: "+header.dwPitchOrLinearSize);
-		if(printDebug) System.out.println("Mipmap count: "+header.dwMipMapCount);
+		if(printDebug) {
+			System.out.printf("Calculated pitch: %d\n", imageSize);
+			System.out.printf("Included PitchOrLinearSize: %d\n", header.dwPitchOrLinearSize);
+			System.out.printf("Mipmap count: %d\n", header.dwMipMapCount);
+		}
 
-		for(int i = 0; i < surfaceCount; i++)
-		{
+		for(int i = 0; i < surfaceCount; i++) {
 			byte[] bytes = new byte[size];
 
-			if(printDebug) System.out.println("Getting main surface "+i+". Bytes: "+bytes.length);
+			debug("Getting main surface %d. Bytes: %d\n", i, bytes.length);
 
 			fis.read(bytes);
 			totalByteCount -= bytes.length;
 			bdata.add(newByteBuffer(bytes));
 
-			if(header.hasFlagMipMapCount)
-			{
+			if(header.hasFlagMipMapCount) {
 				int size2 = Math.max(size / 4, blockSize);
 
-				for(int j = 0; j < header.dwMipMapCount-1; j++)
-				{
+				for(int j = 0; j < header.dwMipMapCount-1; j++) {
 					byte[] bytes2 = new byte[size2];
 
-					if(printDebug) System.out.println("Getting secondary surface "+j+". Bytes: "+bytes2.length);
+					debug("Getting secondary surface %d. Bytes: %d\n", j, bytes2.length);
 					
 					fis.read(bytes2);
 					totalByteCount -= bytes2.length;
@@ -220,20 +218,9 @@ public class DDSFile {
 			}
 		}
 
-		if(printDebug) System.out.printf("Remaining bytes: %d (%d)%n", fis.available(), totalByteCount);
+		debug("Remaining bytes: %d (%d)\n", fis.available(), totalByteCount);
 		fis.close();
-	}
-
-	private int calculatePitch(int blockSize) {
-		return Math.max(1, ((header.dwWidth + 3) / 4)) * blockSize;
-	}
-
-	/** Creates a new ByteBuffer and stores the data within it before returning it. */
-	public static ByteBuffer newByteBuffer(byte[] data) {
-		ByteBuffer buffer = ByteBuffer.allocateDirect(data.length).order(ByteOrder.nativeOrder());
-		buffer.put(data);
-		buffer.flip();
-		return buffer;
+		debug("Time spent loading file: %dms", System.currentTimeMillis() - startTime);
 	}
 
 	public int getWidth() {
@@ -345,6 +332,10 @@ public class DDSFile {
 	}
 
 	public boolean isCubeMap() {
-		return isCubeMap;
+		return header.hasCaps2CubeMap;
+	}
+
+	private int calculatePitch(int blockSize) {
+		return Math.max(1, ((header.dwWidth + 3) / 4)) * blockSize;
 	}
 }

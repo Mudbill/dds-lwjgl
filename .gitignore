@@ -1,1 +1,6 @@
-/bin/
+bin/
+assets/
+lib/
+*.log
+.classpath
+.project

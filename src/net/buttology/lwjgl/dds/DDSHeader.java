@@ -25,14 +25,14 @@ import java.nio.ByteBuffer;
 public class DDSHeader {
 	
 	/* Flags */
-	protected static final int 	DDSD_CAPS 		= 0x000001;
-	protected static final int 	DDSD_HEIGHT 		= 0x000002;
-	protected static final int 	DDSD_WIDTH 		= 0x000004;
-	protected static final int 	DDSD_PITCH 		= 0x000008;
-	protected static final int 	DDSD_PIXELFORMAT 	= 0x001000;
-	protected static final int 	DDSD_MIPMAPCOUNT 	= 0x020000;
+	protected static final int 	DDSD_CAPS			= 0x000001;
+	protected static final int 	DDSD_HEIGHT			= 0x000002;
+	protected static final int 	DDSD_WIDTH			= 0x000004;
+	protected static final int 	DDSD_PITCH			= 0x000008;
+	protected static final int 	DDSD_PIXELFORMAT	= 0x001000;
+	protected static final int 	DDSD_MIPMAPCOUNT	= 0x020000;
 	protected static final int 	DDSD_LINEARSIZE		= 0x080000;
-	protected static final int 	DDSD_DEPTH		= 0x800000;
+	protected static final int 	DDSD_DEPTH			= 0x800000;
 	
 //	public static final int		DDS_HEADER_FLAGS_TEXTURE	= DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT;
 //	public static final int		DDS_HEADER_FLAGS_MIPMAP		= DDSD_MIPMAPCOUNT;
@@ -48,14 +48,14 @@ public class DDSHeader {
 //	public static final int		DDS_SURFACE_FLAGS_TEXTURE	= DDSCAPS_TEXTURE;
 //	public static final int		DDS_SURFACE_FLAGS_CUBEMAP	= DDSCAPS_COMPLEX;
 	
-	protected static final int	DDSCAPS2_CUBEMAP		= 0x200;
+	protected static final int	DDSCAPS2_CUBEMAP			= 0x200;
 	protected static final int	DDSCAPS2_CUBEMAP_POSITIVEX	= 0x400;
 	protected static final int	DDSCAPS2_CUBEMAP_NEGATIVEX	= 0x800;
 	protected static final int	DDSCAPS2_CUBEMAP_POSITIVEY	= 0x1000;
 	protected static final int	DDSCAPS2_CUBEMAP_NEGATIVEY	= 0x2000;
 	protected static final int	DDSCAPS2_CUBEMAP_POSITIVEZ	= 0x4000;
 	protected static final int	DDSCAPS2_CUBEMAP_NEGATIVEZ	= 0x8000;
-	protected static final int	DDSCAPS2_VOLUME			= 0x200000;
+	protected static final int	DDSCAPS2_VOLUME				= 0x200000;
 	
 //	public static final int		DDS_CUBEMAP_POSITIVEX		= DDSCAPS2_CUBEMAP | DDSCAPS2_CUBEMAP_POSITIVEX;
 //	public static final int		DDS_CUBEMAP_NEGATIVEX		= DDSCAPS2_CUBEMAP | DDSCAPS2_CUBEMAP_NEGATIVEX;
@@ -64,7 +64,7 @@ public class DDSHeader {
 //	public static final int		DDS_CUBEMAP_POSITIVEZ		= DDSCAPS2_CUBEMAP | DDSCAPS2_CUBEMAP_POSITIVEZ;
 //	public static final int		DDS_CUBEMAP_NEGATIVEZ		= DDSCAPS2_CUBEMAP | DDSCAPS2_CUBEMAP_NEGATIVEZ;
 //	public static final int		DDS_CUBEMAP_ALLFACES		= DDSCAPS2_CUBEMAP_POSITIVEX | DDSCAPS2_CUBEMAP_NEGATIVEX | DDSCAPS2_CUBEMAP_POSITIVEY | DDSCAPS2_CUBEMAP_NEGATIVEY | DDSCAPS2_CUBEMAP_POSITIVEZ | DDSCAPS2_CUBEMAP_NEGATIVEZ;
-//	public static final int		DDS_FLAGS_VOLUME		= DDSCAPS2_VOLUME;
+//	public static final int		DDS_FLAGS_VOLUME			= DDSCAPS2_VOLUME;
 	
 	/** Size of header in bytes */
 	protected int 		dwSize;
@@ -130,78 +130,72 @@ public class DDSHeader {
 	protected boolean	hasCaps2CubeMapNZ;
 	protected boolean	hasCaps2Volume;
 
-	protected DDSHeader(ByteBuffer header, boolean printDebug) throws IOException
-	{
-		if(header.capacity() != 124) 
-		{
-			if(printDebug) System.err.println("Header is not 124 bytes!");
-			return;
+	protected DDSHeader(ByteBuffer header) throws IOException {
+		if(header.capacity() != 124) {
+			throw new IOException("Invalid header size: " + header.capacity() + ". Should be 124.");
 		}
 		
-		dwSize 			= header.getInt();
-		dwFlags 		= header.getInt();
-		dwHeight 		= header.getInt();
-		dwWidth 		= header.getInt();
+		dwSize				= header.getInt();
+		dwFlags				= header.getInt();
+		dwHeight			= header.getInt();
+		dwWidth				= header.getInt();
 		dwPitchOrLinearSize	= header.getInt();
-		dwDepth			= header.getInt();
+		dwDepth				= header.getInt();
 		dwMipMapCount		= header.getInt();
 		
 		// Unused bytes
 		for(int i = 0; i < dwReserved.length; i++) dwReserved[i] = header.getInt();
 		
-		ddspf 			= new DDSPixelFormat(header, printDebug);
+		ddspf 				= new DDSPixelFormat(header);
 		
-		dwCaps			= header.getInt();
-		dwCaps2			= header.getInt();
+		dwCaps				= header.getInt();
+		dwCaps2				= header.getInt();
 		
 		// Unused bytes
-		dwCaps3			= header.getInt();
-		dwCaps4			= header.getInt();
-		dwReserved2		= header.getInt();
+		dwCaps3				= header.getInt();
+		dwCaps4				= header.getInt();
+		dwReserved2			= header.getInt();
 		
 		/* Flags */
-		hasFlagCaps 		= (dwFlags & DDSD_CAPS) 	== DDSD_CAPS;
-		hasFlagHeight 		= (dwFlags & DDSD_HEIGHT) 	== DDSD_HEIGHT;
-		hasFlagWidth 		= (dwFlags & DDSD_WIDTH) 	== DDSD_WIDTH;
-		hasFlagPitch 		= (dwFlags & DDSD_PITCH) 	== DDSD_PITCH;
-		hasFlagPixelFormat 	= (dwFlags & DDSD_PIXELFORMAT) 	== DDSD_PIXELFORMAT;
-		hasFlagMipMapCount 	= (dwFlags & DDSD_MIPMAPCOUNT) 	== DDSD_MIPMAPCOUNT;
-		hasFlagLinearSize 	= (dwFlags & DDSD_LINEARSIZE) 	== DDSD_LINEARSIZE;
-		hasFlagDepth 		= (dwFlags & DDSD_DEPTH) 	== DDSD_DEPTH;
+		hasFlagCaps			= (dwFlags & DDSD_CAPS)			== DDSD_CAPS;
+		hasFlagHeight		= (dwFlags & DDSD_HEIGHT)		== DDSD_HEIGHT;
+		hasFlagWidth		= (dwFlags & DDSD_WIDTH)		== DDSD_WIDTH;
+		hasFlagPitch		= (dwFlags & DDSD_PITCH)		== DDSD_PITCH;
+		hasFlagPixelFormat	= (dwFlags & DDSD_PIXELFORMAT)	== DDSD_PIXELFORMAT;
+		hasFlagMipMapCount	= (dwFlags & DDSD_MIPMAPCOUNT)	== DDSD_MIPMAPCOUNT;
+		hasFlagLinearSize	= (dwFlags & DDSD_LINEARSIZE)	== DDSD_LINEARSIZE;
+		hasFlagDepth		= (dwFlags & DDSD_DEPTH)		== DDSD_DEPTH;
 		
 		/* Caps */
 		hasCapsComplex		= (dwCaps & DDSCAPS_COMPLEX)	== DDSCAPS_COMPLEX;
-		hasCapsMipMap		= (dwCaps & DDSCAPS_MIPMAP)	== DDSCAPS_MIPMAP;
+		hasCapsMipMap		= (dwCaps & DDSCAPS_MIPMAP)		== DDSCAPS_MIPMAP;
 		hasCapsTexture		= (dwCaps & DDSCAPS_TEXTURE)	== DDSCAPS_TEXTURE;
 		
 		/* Caps2 */
-		hasCaps2CubeMap		= (dwCaps2 & DDSCAPS2_CUBEMAP)			== DDSCAPS2_CUBEMAP;
+		hasCaps2CubeMap		= (dwCaps2 & DDSCAPS2_CUBEMAP)				== DDSCAPS2_CUBEMAP;
 		hasCaps2CubeMapPX	= (dwCaps2 & DDSCAPS2_CUBEMAP_POSITIVEX)	== DDSCAPS2_CUBEMAP_POSITIVEX;
 		hasCaps2CubeMapNX	= (dwCaps2 & DDSCAPS2_CUBEMAP_NEGATIVEX)	== DDSCAPS2_CUBEMAP_NEGATIVEX;
 		hasCaps2CubeMapPY	= (dwCaps2 & DDSCAPS2_CUBEMAP_POSITIVEY)	== DDSCAPS2_CUBEMAP_POSITIVEY;
 		hasCaps2CubeMapNY	= (dwCaps2 & DDSCAPS2_CUBEMAP_NEGATIVEY)	== DDSCAPS2_CUBEMAP_NEGATIVEY;
 		hasCaps2CubeMapPZ	= (dwCaps2 & DDSCAPS2_CUBEMAP_POSITIVEZ)	== DDSCAPS2_CUBEMAP_POSITIVEZ;
 		hasCaps2CubeMapNZ	= (dwCaps2 & DDSCAPS2_CUBEMAP_NEGATIVEZ)	== DDSCAPS2_CUBEMAP_NEGATIVEZ;
-		hasCaps2Volume		= (dwCaps2 & DDSCAPS2_VOLUME)			== DDSCAPS2_VOLUME;
+		hasCaps2Volume		= (dwCaps2 & DDSCAPS2_VOLUME)				== DDSCAPS2_VOLUME;
 		
 		// Do some error checking.
 		
-		if(!hasFlagCaps || !hasFlagHeight || !hasFlagWidth || !hasFlagPixelFormat) 
-		{
-			if(printDebug) System.err.println("DDS: Required flags missing!");
+		if(!hasFlagCaps || !hasFlagHeight || !hasFlagWidth || !hasFlagPixelFormat) {
+			throw new IOException("Required flags missing.");
 		}
 		
-		if(!hasCapsTexture) 
-		{
-			if(printDebug) System.err.println("DDS: Required caps missing!");
+		if(!hasCapsTexture) {
+			throw new IOException("Required caps missing.");
 		}
 		
 		// Print out the debug information received from successful load
-		if(printDebug)
-		{
-			String sysout = "\nDDSHeader properties:\n"
-					+ "\tdwSize \t\t\t\t\t= " + dwSize
-					+ "\n\tFlags:\t\t\t\t\t";
+		if(DDSFile.printDebug) {
+			String sysout = "\nDDSHeader:"
+					+ "\n\tdwSize:\t\t\t" + dwSize
+					+ "\n\tFlags:\t\t\t";
 			
 			if(hasFlagCaps) sysout += "DDSD_CAPS | ";
 			if(hasFlagHeight) sysout += "DDSD_HEIGHT | ";
@@ -212,21 +206,20 @@ public class DDSHeader {
 			if(hasFlagLinearSize) sysout += "DDSD_LINEARSIZE | ";
 			if(hasFlagDepth) sysout += "DDSD_DEPTH | ";
 			
-			sysout += "\n\tdwHeight \t\t\t\t= " 	+ dwHeight + "\n"
-					+ "\tdwWidth \t\t\t\t= " 		+ dwWidth + "\n";
+			sysout += "\n\tdwHeight:\t\t" + dwHeight
+					+ "\n\tdwWidth:\t\t" + dwWidth;
 			
-			if(hasFlagPitch) sysout += "\tdwPitchOrLinearSize \t= " + dwPitchOrLinearSize + "\n";
-			if(hasFlagLinearSize) sysout += "\tdwPitchOrLinearSize \t= " + dwPitchOrLinearSize + "\n";
-			if(hasFlagDepth) sysout += "\tdwDepth \t\t\t\t= " + dwDepth + "\n";
-			if(hasFlagMipMapCount) sysout += "\tdwMipMapCount \t\t\t= " + dwMipMapCount + "\n";
+			if(hasFlagPitch | hasFlagLinearSize) sysout += "\n\tdwPitchOrLinearSize:\t" + dwPitchOrLinearSize;
+			if(hasFlagDepth) sysout += "\n\tdwDepth:\t\t" + dwDepth;
+			if(hasFlagMipMapCount) sysout += "\n\tdwMipMapCount:\t\t" + dwMipMapCount;
 			if(hasFlagCaps) {
-				sysout += "\tCaps:\t\t\t\t\t";
+				sysout += "\n\tCaps:\t\t\t";
 				if(hasCapsComplex) sysout += "DDSCAPS_COMPLEX | ";
 				if(hasCapsMipMap) sysout += "DDSCAPS_MIPMAP | ";
 				if(hasCapsTexture) sysout += "DDSCAPS_TEXTURE | ";
 				
 				if(hasCapsComplex) {
-					sysout += "\n\tCaps2:\t\t\t\t\t";
+					sysout += "\n\tCaps2:\t\t\t";
 					if(hasCaps2CubeMap) sysout += "DDSCAPS2_CUBEMAP | ";
 					if(hasCaps2CubeMapPX) sysout += "DDSCAPS2_CUBEMAP_POSITIVEX | ";
 					if(hasCaps2CubeMapNX) sysout += "DDSCAPS_CUBEMAP_NEGATIVEX | ";
@@ -240,5 +233,4 @@ public class DDSHeader {
 			System.out.println(sysout);
 		}
 	}
-	
 }
