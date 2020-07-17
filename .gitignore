@@ -4,3 +4,5 @@ lib/
 *.log
 .classpath
 .project
+src/engine/
+src/example/

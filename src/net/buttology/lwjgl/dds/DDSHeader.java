@@ -66,46 +66,74 @@ public class DDSHeader {
 //	public static final int		DDS_CUBEMAP_ALLFACES		= DDSCAPS2_CUBEMAP_POSITIVEX | DDSCAPS2_CUBEMAP_NEGATIVEX | DDSCAPS2_CUBEMAP_POSITIVEY | DDSCAPS2_CUBEMAP_NEGATIVEY | DDSCAPS2_CUBEMAP_POSITIVEZ | DDSCAPS2_CUBEMAP_NEGATIVEZ;
 //	public static final int		DDS_FLAGS_VOLUME			= DDSCAPS2_VOLUME;
 	
-	/** Size of header in bytes */
+	/**
+	 * Size of header in bytes
+	 */
 	protected int 		dwSize;
 	
-	/**hasFlags to indicate which members contain valid data */
+	/**
+	 * Flags to indicate which members contain valid data
+	 */
 	protected int 		dwFlags;
 	
-	/** Height in pixels of surface */
+	/**
+	 * Height in pixels of surface
+	 */
 	protected int 		dwHeight;
 	
-	/** Width in pixels of surface */
+	/**
+	 * Width in pixels of surface
+	 */
 	protected int 		dwWidth;
 	
-	/** The pitch or number of bytes per scan line in an uncompressed texture */
+	/**
+	 * The pitch or number of bytes per scan line in an uncompressed texture
+	 */
 	protected int 		dwPitchOrLinearSize;
 	
-	/** Depth of a volume texture in pixels, otherwise unused */
+	/**
+	 * Depth of a volume texture in pixels, otherwise unused
+	 */
 	protected int 		dwDepth;
 	
-	/** Number of mipmap levels, otherwise unused */
+	/**
+	 * Number of mipmap levels, otherwise unused
+	 */
 	protected int 		dwMipMapCount;
 	
-	/** Unused */
+	/**
+	 * Unused bytes
+	 */
 	protected int[] 	dwReserved = new int[11];
 	
-	/** The pixel format */
+	/**
+	 * The pixel format
+	 */
 	protected DDSPixelFormat ddspf;
 	
-	/** Specifies the complexity of the surfaces stored */
+	/**
+	 * Specifies the complexity of the surfaces stored
+	 */
 	protected int 		dwCaps;
 	
-	/** Additional details about the surfaces stored */
+	/**
+	 * Additional details about the surfaces stored
+	 */
 	protected int 		dwCaps2;
 	
-	/** Unused */
+	/**
+	 * Unused bytes
+	 */
 	protected int 		dwCaps3;
 	
-	/** Unused */
+	/**
+	 * Unused bytes
+	 */
 	protected int 		dwCaps4;
 	
-	/** Unused */
+	/**
+	 * Unused bytes
+	 */
 	protected int 		dwReserved2;
 	
 	protected boolean	hasFlagMipMapCount;

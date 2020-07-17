@@ -43,15 +43,34 @@ import java.util.List;
  */
 public class DDSFile {
 	
-	/** A 32-bit representation of the character sequence "DDS " which is the magic word for DDS files. */
+	/**
+	 * Set to true to enable printing of debug messages to standard output
+	 */
+	public static boolean printDebug = false;
+
+	/**
+	 * A 32-bit representation of the character sequence <code>"DDS "</code> which is the magic word for DDS files
+	 */
 	private static final int DDS_MAGIC = 0x20534444;
 	
-	private static final int GL_COMPRESSED_RGBA_S3TC_DXT1_EXT = 0x83f1;
-	private static final int GL_COMPRESSED_RGBA_S3TC_DXT3_EXT = 0x83f2;
-	private static final int GL_COMPRESSED_RGBA_S3TC_DXT5_EXT = 0x83f3;
+	//TODO: Gotta add support for these additional formats...
+	private static final int GL_COMPRESSED_RGB_S3TC_DXT1_EXT 				= 0x83f0;
+	private static final int GL_COMPRESSED_RGBA_S3TC_DXT1_EXT 				= 0x83f1;
+	private static final int GL_COMPRESSED_RGBA_S3TC_DXT3_EXT 				= 0x83f2;
+	private static final int GL_COMPRESSED_RGBA_S3TC_DXT5_EXT 				= 0x83f3;
+	private static final int GL_COMPRESSED_LUMINANCE_ALPHA_LATC2_EXT		= 0x8c72;
+	private static final int GL_COMPRESSED_LUMINANCE_LATC1_EXT				= 0x8c70;
+	private static final int GL_COMPRESSED_SIGNED_LUMINANCE_ALPHA_LATC2_EXT	= 0x8c73;
+	private static final int GL_COMPRESSED_SIGNED_LUMINANCE_LATC1_EXT		= 0x8c71;
+	private static final int GL_COMPRESSED_RED_GREEN_RGTC2_EXT				= 0x8dbd;
+	private static final int GL_COMPRESSED_RED_RGTC1_EXT					= 0x8dbb;
+	private static final int GL_COMPRESSED_SIGNED_RED_GREEN_RGTC2_EXT		= 0x8dbe;
+	private static final int GL_COMPRESSED_SIGNED_RED_RGTC1_EXT				= 0x8dbc;
 
-	/** Creates a new ByteBuffer and stores the data within it before returning it. */
-	public static ByteBuffer newByteBuffer(byte[] data) {
+	/**
+	 * Creates a new ByteBuffer and stores the data within it before returning it.
+	 */
+	private static ByteBuffer newByteBuffer(byte[] data) {
 		ByteBuffer buffer = ByteBuffer.allocateDirect(data.length).order(ByteOrder.nativeOrder());
 		buffer.put(data);
 		buffer.flip();
@@ -67,31 +86,66 @@ public class DDSFile {
 	private static void debug(String msg, Object... args) {
 		if(printDebug) System.out.printf(msg, args);
 	}
+
+	//=======================================================================================
 	
-	public static boolean printDebug = false;
+	/**
+	 * Stores the magic word for the binary document read 
+	 */
+	private int					dwMagic;
 
-	/** Stores the magic word for the binary document read */
-	private int 			dwMagic;
-
-	/** The header information for this DDS document */
-	private DDSHeader 		header;
-
-	/** Arrays of bytes that contain the main surface image data */
-	private List<ByteBuffer> bdata;
-
-	/** Arrays of bytes that contain the secondary surface data, like mipmap levels */
-	private List<ByteBuffer> bdata2;
-
-	/** The calculated size of the image */
-	private int 			imageSize;
-
-	/** The compression format for the current DDS document */
-	private int 			dxtFormat;
+	/**
+	 * The header information for this DDS document 
+	 */
+	private DDSHeader			header;
 	
-	/** Used for debugging to capture how long it takes to load a file */
-	private long			startTime;
+	/**
+	 * The extended header information, applicable if the FourCC == DX10
+	 */
+	private DDSHeaderDXT10		header10;
 
-	/** Empty constructor */
+	/**
+	 * Arrays of bytes that contain the main surface image data 
+	 */
+	private List<ByteBuffer>	bdata;
+
+	/** 
+	 * Arrays of bytes that contain the secondary surface data, like mipmap levels
+	 */
+	private List<ByteBuffer>	bdata2;
+
+	/** 
+	 * The calculated size of the image */
+	private int					imageSize;
+
+	/** 
+	 * The compression format for the current DDS document
+	 */
+	private int					format;
+	
+	/** 
+	 * The compression format for the current DDS document
+	 * @deprecated
+	 */
+	private int					dxtFormat;
+	
+	/** 
+	 * Used for debugging to capture how long it takes to load a file
+	 */
+	private long				startTime;
+
+	/**
+	 * Calculate the pitch or linear size of the document based on the given block size.
+	 * @param blockSize
+	 * @return
+	 */
+	private int calculatePitch(int width, int blockSize) {
+		return Math.max(1, ((width + 3) / 4)) * blockSize;
+	}
+	
+	/** 
+	 * Empty constructor
+	 */
 	public DDSFile() {}
 
 	/**
@@ -182,7 +236,7 @@ public class DDSFile {
 			throw new IOException("Surface format unknown or not supported: "+header.ddspf.sFourCC);
 		}
 
-		imageSize = calculatePitch(blockSize);
+		imageSize = calculatePitch(header.dwWidth, blockSize);
 
 		int surfaceCount = header.hasCaps2CubeMap ? 6 : 1;
 		int size = header.dwPitchOrLinearSize;
@@ -223,16 +277,33 @@ public class DDSFile {
 		debug("Time spent loading file: %dms", System.currentTimeMillis() - startTime);
 	}
 
+	/**
+	 * Get the width of this image document.
+	 * @return width in pixels
+	 */
 	public int getWidth() {
 		return header.dwWidth;
 	}
 
+	/**
+	 * Get the height of this image document.
+	 * @return height in pixels
+	 */
 	public int getHeight() {
 		return header.dwHeight;
 	}
 
 	/**
+	 * Get the primary surface data buffer, usually the first full-sized texture image.
+	 * @return
+	 */
+	public ByteBuffer getPrimarySurface() {
+		return bdata.get(0);
+	}
+	
+	/**
 	 * Gets the main surface data buffer.
+	 * @deprecated
 	 * @return
 	 */
 	public ByteBuffer getBuffer() {
@@ -241,24 +312,34 @@ public class DDSFile {
 
 	/**
 	 * Gets the main surface data buffer - usually the first full-sized image.
+	 * @deprecated
 	 * @return
 	 */
 	public ByteBuffer getMainBuffer() {
 		return bdata.get(0);
 	}
 
+	/**
+	 * Get the number of mipmap levels of this document.
+	 * @return number of mipmaps
+	 */
 	public int getMipMapCount() {
 		return this.header.dwMipMapCount;
 	}
 
 	/**
-	 * Gets a specific level from the amount of mipmaps. If specified outside the range of available mipmaps, the closest one is returned.
+	 * Gets a specific level from the amount of mipmaps. <br>
+	 * If specified outside the range of available mipmaps, the closest one is returned.
 	 */
-	public ByteBuffer getMipMapLevel(int level) {
+	public ByteBuffer getMipMapSurface(int level) {
 		level = Math.min(Math.min(header.dwMipMapCount-1, level), Math.max(level, 0));
 		return this.bdata2.get(level);
 	}
 
+	/**
+	 * Get the surface buffer for the positive X direction of a cubemap. If this document is not a cubemap, null is returned.
+	 * @return positive X buffer, or null if not cubemap.
+	 */
 	public ByteBuffer getCubeMapPositiveX() {
 		if(!header.hasCaps2CubeMap) return null;
 		return bdata.get(0);
@@ -323,6 +404,18 @@ public class DDSFile {
 		return this.bdata2.get((level*6)-1);
 	}
 
+	/**
+	 * Gets the compression format used for this DDS document.
+	 * @return format
+	 */
+	public int getFormat() {
+		return format;
+	}
+	
+	/**
+	 * @deprecated
+	 * @return
+	 */
 	public int getDXTFormat() {
 		return dxtFormat;
 	}
@@ -331,11 +424,11 @@ public class DDSFile {
 		return imageSize;
 	}
 
+	/**
+	 * Whether this DDS document is a cubemap or not.
+	 * @return true if cubemap, else false
+	 */
 	public boolean isCubeMap() {
 		return header.hasCaps2CubeMap;
-	}
-
-	private int calculatePitch(int blockSize) {
-		return Math.max(1, ((header.dwWidth + 3) / 4)) * blockSize;
 	}
 }

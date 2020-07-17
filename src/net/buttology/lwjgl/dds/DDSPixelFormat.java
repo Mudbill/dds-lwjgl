@@ -32,34 +32,54 @@ public class DDSPixelFormat {
 	protected static final int DDPF_YUV			= 0x00200;
 	protected static final int DDPF_LUMINANCE	= 0x20000;
 	
-	/** Structure size in bytes */
+	/**
+	 * Structure size in bytes
+	 */
 	protected int		dwSize;
 	
-	/** Values which indicate what type of data is in the surface */
+	/**
+	 * Values which indicate what type of data is in the surface
+	 */
 	protected int		dwFlags;
 	
-	/** Four-character code for specifying compressed or custom format */
+	/**
+	 * Four-character code for specifying compressed or custom format
+	 */
 	protected int		dwFourCC;
 	
-	/** Number of bits in an RGB (possibly including alpha) format */
+	/**
+	 * Number of bits in an RGB (possibly including alpha) format
+	 */
 	protected int		dwRGBBitCount;
 	
-	/** Red (or lumiannce or Y) mask for reading color data */
+	/**
+	 * Red (or lumiannce or Y) mask for reading color data
+	 */
 	protected int		dwRBitMask;
 	
-	/** Green (or U) mask for reading color data */
+	/**
+	 * Green (or U) mask for reading color data
+	 */
 	protected int		dwGBitMask;
 	
-	/** Blue (or V) mask for reading color data */
+	/**
+	 * Blue (or V) mask for reading color data
+	 */
 	protected int		dwBBitMask;
 	
-	/** Alpha mask for reading alpha data */
+	/**
+	 * Alpha mask for reading alpha data
+	 */
 	protected int		dwABitMask;
 	
-	/** Four-character code's String representation */
+	/**
+	 * Four-character code's String representation
+	 */
 	protected String	sFourCC;
 	
-	/** Whether this texture uses compression or not */
+	/**
+	 * Whether this texture uses compression or not
+	 */
 	protected boolean isCompressed;
 	
 	protected boolean hasFlagAlphaPixels;
@@ -68,6 +88,17 @@ public class DDSPixelFormat {
 	protected boolean hasFlagRgb;
 	protected boolean hasFlagYuv;
 	protected boolean hasFlagLuminance;
+	
+	/**
+	 * Constructs the four-character code's String representation from the integer value.
+	 * @param fourCC
+	 * @return
+	 */
+	private String createFourCCString(int fourCC) {
+		byte[] fourCCString = new byte[DDPF_FOURCC];
+		for(int i = 0; i < fourCCString.length; i++) fourCCString[i] = (byte) (fourCC >> (i*8));
+		return new String(fourCCString);
+	}
 	
 	protected DDSPixelFormat(ByteBuffer header) throws IOException {
 		dwSize			= header.getInt();
@@ -119,17 +150,5 @@ public class DDSPixelFormat {
 			sysout += "\n\tisCompressed:\t\t" + isCompressed;
 			System.out.println(sysout);
 		}
-	}
-	
-	/**
-	 * Constructs the four-character code's String representation from the integer value.
-	 * @param fourCC
-	 * @return
-	 */
-	private String createFourCCString(int fourCC) {
-		byte[] fourCCString = new byte[DDPF_FOURCC];
-		for(int i = 0; i < fourCCString.length; i++) fourCCString[i] = (byte) (fourCC >> (i*8));
-		return new String(fourCCString);
-	}
-	
+	}	
 }
