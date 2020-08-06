@@ -1,22 +1,3 @@
-/*
- * Copyright (C) 2018  Magnus Bull
- *
- *  This file is part of dds-lwjgl.
- *
- *  dds-lwjgl is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  any later version.
- *
- *  dds-lwjgl is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with dds-lwjgl.  If not, see <https://www.gnu.org/licenses/>. 
- */
-
 package net.buttology.lwjgl.dds;
 
 import java.io.IOException;
@@ -40,21 +21,21 @@ public class DDSHeader {
 //	public static final int		DDS_HEADER_FLAGS_PITCH		= DDSD_PITCH;
 //	public static final int		DDS_HEADER_FLAGS_LINEARSIZE	= DDSD_LINEARSIZE;
 	
-	protected static final int	DDSCAPS_COMPLEX		= 0x8;
+	protected static final int	DDSCAPS_COMPLEX		= 0x000008;
 	protected static final int	DDSCAPS_MIPMAP		= 0x400000;
-	protected static final int	DDSCAPS_TEXTURE		= 0x1000;
+	protected static final int	DDSCAPS_TEXTURE		= 0x001000;
 	
 //	public static final int		DDS_SURFACE_FLAGS_MIPMAP	= DDSCAPS_COMPLEX | DDSCAPS_MIPMAP;
 //	public static final int		DDS_SURFACE_FLAGS_TEXTURE	= DDSCAPS_TEXTURE;
 //	public static final int		DDS_SURFACE_FLAGS_CUBEMAP	= DDSCAPS_COMPLEX;
 	
-	protected static final int	DDSCAPS2_CUBEMAP			= 0x200;
-	protected static final int	DDSCAPS2_CUBEMAP_POSITIVEX	= 0x400;
-	protected static final int	DDSCAPS2_CUBEMAP_NEGATIVEX	= 0x800;
-	protected static final int	DDSCAPS2_CUBEMAP_POSITIVEY	= 0x1000;
-	protected static final int	DDSCAPS2_CUBEMAP_NEGATIVEY	= 0x2000;
-	protected static final int	DDSCAPS2_CUBEMAP_POSITIVEZ	= 0x4000;
-	protected static final int	DDSCAPS2_CUBEMAP_NEGATIVEZ	= 0x8000;
+	protected static final int	DDSCAPS2_CUBEMAP			= 0x000200;
+	protected static final int	DDSCAPS2_CUBEMAP_POSITIVEX	= 0x000400;
+	protected static final int	DDSCAPS2_CUBEMAP_NEGATIVEX	= 0x000800;
+	protected static final int	DDSCAPS2_CUBEMAP_POSITIVEY	= 0x001000;
+	protected static final int	DDSCAPS2_CUBEMAP_NEGATIVEY	= 0x002000;
+	protected static final int	DDSCAPS2_CUBEMAP_POSITIVEZ	= 0x004000;
+	protected static final int	DDSCAPS2_CUBEMAP_NEGATIVEZ	= 0x008000;
 	protected static final int	DDSCAPS2_VOLUME				= 0x200000;
 	
 //	public static final int		DDS_CUBEMAP_POSITIVEX		= DDSCAPS2_CUBEMAP | DDSCAPS2_CUBEMAP_POSITIVEX;

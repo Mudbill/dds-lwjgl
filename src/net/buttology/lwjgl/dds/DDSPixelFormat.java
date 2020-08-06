@@ -1,22 +1,3 @@
-/*
- * Copyright (C) 2018  Magnus Bull
- *
- *  This file is part of dds-lwjgl.
- *
- *  dds-lwjgl is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  any later version.
- *
- *  dds-lwjgl is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with dds-lwjgl.  If not, see <https://www.gnu.org/licenses/>. 
- */
-
 package net.buttology.lwjgl.dds;
 
 import java.io.IOException;
@@ -129,7 +110,7 @@ public class DDSPixelFormat {
 		}
 		
 		if(DDSFile.printDebug) {			
-			String sysout = "\nDDSPixelFormat properties:"
+			String sysout = "\nDDSPixelFormat:"
 					+ "\n\tdwSize:\t\t\t" + dwSize
 					+ "\n\tFlags:\t\t\t";
 			
@@ -143,9 +124,9 @@ public class DDSPixelFormat {
 			if(hasFlagFourCC) sysout += "\n\tsFourCC:\t\t" + sFourCC;
 			if(hasFlagRgb) {
 				sysout += "\n\tdwRGBBitCount:\t" + dwRGBBitCount
-						+"\n\tdwRBitMask:\t\t" + dwRBitMask
-						+"\n\tdwGBitMask:\t\t" + dwGBitMask
-						+"\n\tdwBBitMask:\t\t" + dwBBitMask;
+						+ "\n\tdwRBitMask:\t\t" + dwRBitMask
+						+ "\n\tdwGBitMask:\t\t" + dwGBitMask
+						+ "\n\tdwBBitMask:\t\t" + dwBBitMask;
 			}
 			sysout += "\n\tisCompressed:\t\t" + isCompressed;
 			System.out.println(sysout);

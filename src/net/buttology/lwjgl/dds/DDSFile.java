@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018  Magnus Bull
+ * Copyright (C) 2020  Magnus Bull
  *
  *  This file is part of dds-lwjgl.
  *
@@ -54,18 +54,56 @@ public class DDSFile {
 	private static final int DDS_MAGIC = 0x20534444;
 	
 	//TODO: Gotta add support for these additional formats...
-	private static final int GL_COMPRESSED_RGB_S3TC_DXT1_EXT 				= 0x83f0;
-	private static final int GL_COMPRESSED_RGBA_S3TC_DXT1_EXT 				= 0x83f1;
-	private static final int GL_COMPRESSED_RGBA_S3TC_DXT3_EXT 				= 0x83f2;
-	private static final int GL_COMPRESSED_RGBA_S3TC_DXT5_EXT 				= 0x83f3;
-	private static final int GL_COMPRESSED_LUMINANCE_ALPHA_LATC2_EXT		= 0x8c72;
-	private static final int GL_COMPRESSED_LUMINANCE_LATC1_EXT				= 0x8c70;
-	private static final int GL_COMPRESSED_SIGNED_LUMINANCE_ALPHA_LATC2_EXT	= 0x8c73;
-	private static final int GL_COMPRESSED_SIGNED_LUMINANCE_LATC1_EXT		= 0x8c71;
-	private static final int GL_COMPRESSED_RED_GREEN_RGTC2_EXT				= 0x8dbd;
-	private static final int GL_COMPRESSED_RED_RGTC1_EXT					= 0x8dbb;
-	private static final int GL_COMPRESSED_SIGNED_RED_GREEN_RGTC2_EXT		= 0x8dbe;
-	private static final int GL_COMPRESSED_SIGNED_RED_RGTC1_EXT				= 0x8dbc;
+		
+//	private static final int GL_COMPRESSED_RGB_S3TC_DXT1_EXT 				= 0x83f0;
+//	private static final int GL_COMPRESSED_RGBA_S3TC_DXT1_EXT 				= 0x83f1;
+//	private static final int GL_COMPRESSED_RGBA_S3TC_DXT3_EXT 				= 0x83f2;
+//	private static final int GL_COMPRESSED_RGBA_S3TC_DXT5_EXT 				= 0x83f3;
+//	private static final int GL_COMPRESSED_LUMINANCE_ALPHA_LATC2_EXT		= 0x8c72;
+//	private static final int GL_COMPRESSED_LUMINANCE_LATC1_EXT				= 0x8c70;
+//	private static final int GL_COMPRESSED_SIGNED_LUMINANCE_ALPHA_LATC2_EXT	= 0x8c73;
+//	private static final int GL_COMPRESSED_SIGNED_LUMINANCE_LATC1_EXT		= 0x8c71;
+//	private static final int GL_COMPRESSED_RED_GREEN_RGTC2_EXT				= 0x8dbd;
+//	private static final int GL_COMPRESSED_RED_RGTC1_EXT					= 0x8dbb;
+//	private static final int GL_COMPRESSED_SIGNED_RED_GREEN_RGTC2_EXT		= 0x8dbe;
+//	private static final int GL_COMPRESSED_SIGNED_RED_RGTC1_EXT				= 0x8dbc;
+
+	private enum CompressionFormat {
+		/** 
+		 * Block Compression 1 (DXT1), storing RGB data as 5:6:5 bits each. 
+		 */
+		BC1(0x83f0),
+		/** 
+		 * Block Compression 2 (DXT1a), storing RGBA data as 5:6:5:4 bits each. 
+		 */
+		BC2(0x83f1),
+		/** 
+		 * Block Compression 3 (DXT3), storing RGBA data as 5:6:5:8 bits each. 
+		 */
+		BC3(0x83f2),
+		/** 
+		 * Block Compression 4 (DXT5), storing RGBA data as 8 bits each, either as signed or unsigned floating points. 
+		 */
+		BC4(0x83f3),
+		/** 
+		 * Block Compression 5 (ATI2), storing RG data as 8 bits each, either as signed or unsigned floating points. 
+		 */
+		BC5(0x8dbd)
+		;
+		
+		private int code;
+		
+		private CompressionFormat(int code) {
+			this.code = code;
+		}
+		
+		/**
+		 * This code uniquely identifies the format as well as being used for LWJGL's internal buffering structures.
+		 */
+		public int getCode() {
+			return this.code;
+		}
+	}
 
 	/**
 	 * Creates a new ByteBuffer and stores the data within it before returning it.
@@ -121,13 +159,7 @@ public class DDSFile {
 	/** 
 	 * The compression format for the current DDS document
 	 */
-	private int					format;
-	
-	/** 
-	 * The compression format for the current DDS document
-	 * @deprecated
-	 */
-	private int					dxtFormat;
+	private CompressionFormat	format;
 	
 	/** 
 	 * Used for debugging to capture how long it takes to load a file
@@ -135,13 +167,32 @@ public class DDSFile {
 	private long				startTime;
 
 	/**
-	 * Calculate the pitch or linear size of the document based on the given block size.
+	 * Calculate the pitch or linear size of the document based on the given block size. Applies to block compression formats.
 	 * @param blockSize
 	 * @return
 	 */
-	private int calculatePitch(int width, int blockSize) {
+	private int computePitchBC(int width, int blockSize) {
 		return Math.max(1, ((width + 3) / 4)) * blockSize;
 	}
+	
+//	/**
+//	 * Calculate the pitch for the document. Applies to legacy compression formats like R8G8_B8G8, G8R8_G8B8, legacy UYVY-packed, and legacy YUY2-packed formats.
+//	 * @param width
+//	 * @return
+//	 */
+//	private int computePitchLegacy(int width) {
+//		return ((width + 1) >> 1) * 4;
+//	}
+//	
+//	/**
+//	 * Calculate the pitch for the document.
+//	 * @param width
+//	 * @param bitsPerPixel
+//	 * @return
+//	 */
+//	private int computePitch(int width, int bitsPerPixel) {
+//		return ( width * bitsPerPixel + 7 ) / 8;
+//	}
 	
 	/** 
 	 * Empty constructor
@@ -153,9 +204,10 @@ public class DDSFile {
 	 * @param filePath
 	 * @throws IOException 
 	 * @throws FileNotFoundException 
+	 * @throws DDSException 
 	 */
-	public DDSFile(String filePath) throws IOException {
-		this.loadFile(new File(filePath));
+	public DDSFile(String filePath) throws IOException, FileNotFoundException, DDSException {
+		this(new File(filePath));
 	}
 
 	/**
@@ -163,43 +215,59 @@ public class DDSFile {
 	 * @param file
 	 * @throws IOException 
 	 * @throws FileNotFoundException 
+	 * @throws DDSException 
 	 */
-	public DDSFile(File file) throws IOException {
-		this.loadFile(file);
+	public DDSFile(File file) throws IOException, FileNotFoundException, DDSException {
+		if(!file.isFile()) {
+			throw new FileNotFoundException();
+		}
+		debug("Loading DDS file: '%s'\n", file.getAbsolutePath());
+		FileInputStream fis = new FileInputStream(file);
+		this.loadFile(fis);
 	}
 	
 	/**
 	 * Loads a DDS file from the given file path.
 	 * @param file
 	 * @throws IOException 
+	 * @throws FileNotFoundException
+	 * @throws DDSException 
 	 */
-	public void loadFile(String file) throws IOException {
+	public void loadFile(String file) throws IOException, FileNotFoundException, DDSException {
 		this.loadFile(new File(file));
 	}
-
+	
+	/**
+	 * Loads a DDS file from the given file.
+	 * @param file
+	 * @throws IOException 
+	 * @throws FileNotFoundException
+	 * @throws DDSException 
+	 */
+	public void loadFile(File file) throws IOException, FileNotFoundException, DDSException {
+		FileInputStream fis = new FileInputStream(file);
+		this.loadFile(fis);
+	}
+	
 	/**
 	 * Loads a DDS file.
 	 * @param file
 	 * @throws IOException
 	 * @throws FileNotFoundException
+	 * @throws DDSException 
 	 */
-	public void loadFile(File file) throws IOException, FileNotFoundException {
-		if(!file.isFile()) {
-			throw new FileNotFoundException();
-		}
-		
-		debug("Loading DDS file: '%s'\n", file.getAbsolutePath());
+	public void loadFile(FileInputStream fis) throws IOException, FileNotFoundException, DDSException {
 		if(printDebug) {
 			this.startTime = System.currentTimeMillis(); 
 		}
 		
-		bdata = new ArrayList<ByteBuffer>();
-		bdata2 = new ArrayList<ByteBuffer>(); //TODO: Not properly implemented yet.
-
-		FileInputStream fis = new FileInputStream(file);
-
 		int totalByteCount = fis.available();
 		debug("Total bytes: %d\n", totalByteCount);
+		
+		if(totalByteCount < 128) {
+			fis.close();
+			throw new DDSException("Invalid file size. Must be at least 128 bytes.");
+		}
 
 		byte[] bMagic = new byte[4];
 		fis.read(bMagic);
@@ -207,7 +275,7 @@ public class DDSFile {
 
 		if(dwMagic != DDS_MAGIC) {
 			fis.close();
-			throw new IOException("Wrong magic word! This is not a valid DDS file.");
+			throw new DDSException("Invalid DDS file. Magic number does not match.");
 		}
 
 		byte[] bHeader = new byte[124];
@@ -215,28 +283,40 @@ public class DDSFile {
 		header = new DDSHeader(newByteBuffer(bHeader));
 		
 		totalByteCount -= 128;
-
+		
 		int blockSize = 16;
-		if(header.ddspf.sFourCC.equalsIgnoreCase("DXT1")) {
-			dxtFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+		
+		switch(header.ddspf.sFourCC) {
+		case "DXT1":
+			format = CompressionFormat.BC1;
 			blockSize = 8;
-		}
-		else if(header.ddspf.sFourCC.equalsIgnoreCase("DXT3")) {
-			dxtFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
-		}
-		else if(header.ddspf.sFourCC.equalsIgnoreCase("DXT5")) {
-			dxtFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
-		}
-		else if(header.ddspf.sFourCC.equalsIgnoreCase("DX10")) {
+			break;
+		case "DXT3":
+			format = CompressionFormat.BC3; break;
+		case "DXT5":
+			format = CompressionFormat.BC4; break;
+		case "ATI1":
+//			format = GL_COMPRESSED_RED_RGTC1_EXT;
+			blockSize = 8;
+			break;
+		case "ATI2":
+			format = CompressionFormat.BC5; break;
+		case "DX10":
+			if(fis.available() < 20) {
+				fis.close();
+				throw new DDSException("Invalid file size. Must be at least 148 bytes using the DX10 extended header.");
+			}
+			byte[] bHeader10 = new byte[20];
+			fis.read(bHeader10);
+			header10 = new DDSHeaderDXT10(newByteBuffer(bHeader10));
 			fis.close();
-			throw new IOException("Uses DX10 extended header, which is not supported!");
-		}
-		else {
+			throw new DDSException("Unsupported format, uses DX10 extended header.");
+		default:
 			fis.close();
-			throw new IOException("Surface format unknown or not supported: "+header.ddspf.sFourCC);
+			throw new DDSException("Surface format unknown or not supported: " + header.ddspf.sFourCC);
 		}
 
-		imageSize = calculatePitch(header.dwWidth, blockSize);
+		imageSize = computePitchBC(header.dwWidth, blockSize);
 
 		int surfaceCount = header.hasCaps2CubeMap ? 6 : 1;
 		int size = header.dwPitchOrLinearSize;
@@ -246,6 +326,9 @@ public class DDSFile {
 			System.out.printf("Included PitchOrLinearSize: %d\n", header.dwPitchOrLinearSize);
 			System.out.printf("Mipmap count: %d\n", header.dwMipMapCount);
 		}
+		
+		bdata = new ArrayList<ByteBuffer>();
+		bdata2 = new ArrayList<ByteBuffer>(); //TODO: Not properly implemented yet.
 
 		for(int i = 0; i < surfaceCount; i++) {
 			byte[] bytes = new byte[size];
@@ -409,7 +492,7 @@ public class DDSFile {
 	 * @return format
 	 */
 	public int getFormat() {
-		return format;
+		return format.getCode();
 	}
 	
 	/**
@@ -417,7 +500,7 @@ public class DDSFile {
 	 * @return
 	 */
 	public int getDXTFormat() {
-		return dxtFormat;
+		return format.getCode();
 	}
 
 	public int getPitchOrLinearSize() {
