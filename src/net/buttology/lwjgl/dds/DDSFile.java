@@ -101,7 +101,7 @@ public class DDSFile {
 
 	/**
 	 * Loads a DDS file from the given file stream.
-	 * @param file
+	 * @param fis
 	 * @throws IOException
 	 */
 	public DDSFile(FileInputStream fis) throws IOException
