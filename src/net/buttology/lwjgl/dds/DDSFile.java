@@ -37,52 +37,41 @@ import static org.lwjgl.opengl.EXTTextureCompressionRGTC.*;
  * @version 2.0.0
  */
 public class DDSFile {
-	
 	/**
 	 * A 32-bit representation of the character sequence <code>"DDS "</code> which is the magic word for DDS files
 	 */
 	private static final int DDS_MAGIC = 0x20534444;
-	
-	/**
-	 * Creates a new ByteBuffer and stores the data within it before returning it.
-	 */
-	private static ByteBuffer newByteBuffer(byte[] data) {
-		ByteBuffer buffer = ByteBuffer.allocateDirect(data.length).order(ByteOrder.LITTLE_ENDIAN);
-		buffer.put(data);
-		buffer.flip();
-		return buffer;
-	}
-
-	//=======================================================================================
-	
-	/**
-	 * Stores the magic word for the binary document read 
-	 */
-	private int					dwMagic;
 
 	/**
 	 * The header information for this DDS document 
 	 */
 	private DDSHeader			header;
+	private DDSHeaderDXT10		headerDXT10;
 	
 	/**
-	 * Arrays of bytes that contain the main surface image data 
+	 * Arrays of bytes that contain the surface image data
 	 */
 	private List<ByteBuffer>	bdata;
 
-	/** 
-	 * Arrays of bytes that contain the secondary surface data, like mipmap levels
+	/**
+	 * The number of surfaces in the texture
 	 */
-	private List<ByteBuffer>	bdata2;
+	private int 				surfaceCount;
 
-	/** 
-	 * The calculated size of the image */
-	private int					imageSize;
+	/**
+	 * The number of mipmap levels in each surface
+	 */
+	private int					levels;
 
 	/** 
 	 * The compression format for the current DDS document
 	 */
 	private int					format;
+
+	/**
+	 * Whether this DDS document is a cubemap or not
+	 */
+	private boolean				isCubeMap;
 
 	/**
 	 * Calculate the pitch or linear size of the document based on the given block size. Applies to block compression formats.
@@ -98,8 +87,8 @@ public class DDSFile {
 	/**
 	 * Loads a DDS file from the given file path.
 	 * @param filePath
-	 * @throws IOException 
-	 * @throws FileNotFoundException 
+	 * @throws IOException
+	 * @throws FileNotFoundException
 	 */
 	public DDSFile(String filePath) throws IOException, FileNotFoundException {
 		this(new File(filePath));
@@ -108,8 +97,8 @@ public class DDSFile {
 	/**
 	 * Loads a DDS file from the given file.
 	 * @param file
-	 * @throws IOException 
-	 * @throws FileNotFoundException 
+	 * @throws IOException
+	 * @throws FileNotFoundException
 	 */
 	public DDSFile(File file) throws IOException, FileNotFoundException {
 		if(!file.isFile()) {
@@ -118,45 +107,66 @@ public class DDSFile {
 		FileInputStream fis = new FileInputStream(file);
 		this.loadFile(fis);
 	}
+
+	/**
+	 * Loads a DDS file from the given file stream.
+	 * @param file
+	 * @throws IOException
+	 */
+	public DDSFile(FileInputStream fis) throws IOException
+	{
+		this.loadFile(fis);
+	}
 	
 	/**
 	 * Loads a DDS file from the given file path.
 	 * @param file
-	 * @throws IOException 
+	 * @throws IOException
 	 * @throws FileNotFoundException
 	 */
 	public void loadFile(String file) throws IOException, FileNotFoundException {
 		this.loadFile(new File(file));
 	}
-	
+
 	/**
 	 * Loads a DDS file from the given file.
 	 * @param file
-	 * @throws IOException 
+	 * @throws IOException
 	 * @throws FileNotFoundException
 	 */
-	public void loadFile(File file) throws IOException, FileNotFoundException {
+	public void loadFile(File file) throws IOException
+	{
+		if(!file.isFile())
+		{
+			throw new FileNotFoundException("DDS: File not found: " + file.getAbsolutePath());
+		}
+
 		FileInputStream fis = new FileInputStream(file);
-		this.loadFile(fis);
+		try
+		{
+			loadFile(fis);
+		}
+		finally
+		{
+			fis.close();
+		}
 	}
-	
+
 	/**
 	 * Loads a DDS file.
-	 * @param file
+	 * @param fis
 	 * @throws IOException
 	 */
-	public void loadFile(FileInputStream fis) throws IOException {
+	public void loadFile(FileInputStream fis) throws IOException
+	{
 		if(fis.available() < 128) {
-			fis.close();
 			throw new IOException("Invalid file size. Must be at least 128 bytes.");
 		}
 
 		byte[] bMagic = new byte[4];
 		fis.read(bMagic);
-		dwMagic = newByteBuffer(bMagic).getInt();
-
-		if(dwMagic != DDS_MAGIC) {
-			fis.close();
+		if(!isDDSFile(bMagic))
+		{
 			throw new IOException("Invalid DDS file. Magic number does not match.");
 		}
 
@@ -165,7 +175,7 @@ public class DDSFile {
 		header = new DDSHeader(newByteBuffer(bHeader));
 		
 		int blockSize = 16;
-		
+		headerDXT10 = null;
 		switch(header.ddspf.sFourCC) {
 		case "DXT1":
 			format = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
@@ -185,39 +195,71 @@ public class DDSFile {
 			format = GL_COMPRESSED_RED_GREEN_RGTC2_EXT;
 			break;
 		case "DX10":
-			fis.close();
-			throw new IOException("Unsupported format, uses DX10 extended header.");
+			byte[] bHeaderDXT10 = new byte[20];
+			fis.read(bHeaderDXT10);
+			headerDXT10 = new DDSHeaderDXT10(newByteBuffer(bHeaderDXT10));
+			format = headerDXT10.getFormat();
+			blockSize = headerDXT10.getBlockSize();
+			break;
 		default:
-			fis.close();
 			throw new IOException("Surface format unknown or not supported: " + header.ddspf.sFourCC);
 		}
 
-		imageSize = calculatePitchBC(header.dwWidth, blockSize);
+		if(header.hasCaps2CubeMap || (headerDXT10 != null && headerDXT10.isTextureCube))
+		{
+			surfaceCount = 6;
+			isCubeMap = true; 
+		}
+		else 
+		{
+			surfaceCount = 1;
+			isCubeMap = false;
+		}
 
-		int surfaceCount = header.hasCaps2CubeMap ? 6 : 1;
-		int size = header.dwPitchOrLinearSize;
-		
+		if (headerDXT10 != null && headerDXT10.arraySize > 1)
+		{
+			surfaceCount *= headerDXT10.arraySize;
+		}
+
+		levels = 1;
+		if (header.hasFlagMipMapCount)
+			levels = Math.max(1, header.dwMipMapCount);
+
 		bdata = new ArrayList<ByteBuffer>();
-		bdata2 = new ArrayList<ByteBuffer>(); //TODO: Not properly implemented yet.
+		for(int i = 0; i < surfaceCount; i++)
+		{
+			for(int j = 0; j < levels; j++)
+			{
+				int size = calculateSize(blockSize, header.dwWidth >> j, header.dwHeight >> j);
+				byte[] bytes = new byte[size];
 
-		for(int i = 0; i < surfaceCount; i++) {
-			byte[] bytes = new byte[size];
-
-			fis.read(bytes);
-			bdata.add(newByteBuffer(bytes));
-
-			if(header.hasFlagMipMapCount) {
-				int size2 = Math.max(size / 4, blockSize);
-
-				for(int j = 0; j < header.dwMipMapCount-1; j++) {
-					byte[] bytes2 = new byte[size2];
-					fis.read(bytes2);
-					bdata2.add(newByteBuffer(bytes2));
-					size2 = Math.max(size2 / 4, blockSize);
-				}
+				fis.read(bytes);
+				bdata.add(newByteBuffer(bytes));
 			}
 		}
-		fis.close();
+	}
+
+	public static boolean isDDSFile(byte[] bMagic)
+	{
+		return ByteBuffer.wrap(bMagic).order(ByteOrder.LITTLE_ENDIAN).getInt() == DDS_MAGIC;
+	}
+
+	private int calculateSize(int blockSize, int width, int height) {
+		return Math.max(1, ((height + 3) / 4)) * calculatePitch(blockSize, width);
+	}
+
+	private int calculatePitch(int blockSize, int width) {
+		return Math.max(1, ((width + 3) / 4)) * blockSize;
+	}
+
+	/**
+	 * Creates a new ByteBuffer and stores the data within it before returning it.
+	 */
+	public static ByteBuffer newByteBuffer(byte[] data) {
+		ByteBuffer buffer = ByteBuffer.allocateDirect(data.length).order(ByteOrder.LITTLE_ENDIAN);
+		buffer.put(data);
+		buffer.flip();
+		return buffer;
 	}
 
 	/**
@@ -229,28 +271,46 @@ public class DDSFile {
 	}
 
 	/**
+	 * Get the width of specified mipmap level.
+	 * @param level
+	 * @return width in pixels
+	 */
+	public int getWidth(int level) {
+		return Math.max(header.dwWidth >> level, 1);
+	}
+
+	/**
 	 * Get the height of this image document.
 	 * @return height in pixels
 	 */
 	public int getHeight() {
 		return header.dwHeight;
 	}
-	
+
 	/**
-	 * Gets the main surface data buffer.
-	 * @return
+	 * Get the height of specified mipmap level.
+	 * @param level
+	 * @return height in pixels
 	 */
-	public ByteBuffer getBuffer() {
-		return bdata.get(0);
+	public int getHeight(int level) {
+		return Math.max(header.dwHeight >> level, 1);
 	}
 
 	/**
 	 * Gets the main surface data buffer - usually the first full-sized image.
-	 * @deprecated
 	 * @return
 	 */
-	public ByteBuffer getMainBuffer() {
-		return bdata.get(0);
+	public ByteBuffer getBuffer() {
+		return getBuffer(0);
+	}
+
+	/**
+	 * Gets a specific mipmap level from the main surface.
+	 * If specified outside the range of available mipmaps, the closest one is returned.
+	 */
+	public ByteBuffer getBuffer(int level) {
+		level = Math.min(Math.min(levels - 1, level), Math.max(level, 0));
+		return this.bdata.get(level);
 	}
 
 	/**
@@ -258,16 +318,21 @@ public class DDSFile {
 	 * @return number of mipmaps
 	 */
 	public int getMipMapCount() {
-		return this.header.dwMipMapCount;
+		return this.levels;
 	}
 
 	/**
-	 * Gets a specific level from the amount of mipmaps. <br>
-	 * If specified outside the range of available mipmaps, the closest one is returned.
+	 * Gets a specific mipmap level from a specific surface.
+	 * If specified outside the range of available surfaces, the closest one is returned.
 	 */
-	public ByteBuffer getMipMapSurface(int level) {
-		level = Math.min(Math.min(header.dwMipMapCount-2, level), Math.max(level, 0));
-		return this.bdata2.get(level);
+	public ByteBuffer getBuffer(int level, int surface) {
+		level = Math.min(Math.min(levels - 1, level), Math.max(level, 0));
+		surface = Math.min(Math.min(surfaceCount - 1, surface), Math.max(surface, 0));
+		return this.bdata.get(level * (surface + 1));
+	}
+
+	public int getSurfaceCount() {
+		return this.surfaceCount;
 	}
 
 	/**
@@ -275,63 +340,63 @@ public class DDSFile {
 	 * @return positive X buffer, or null if not cubemap.
 	 */
 	public ByteBuffer getCubeMapPositiveX() {
-		if(!header.hasCaps2CubeMap) return null;
-		return bdata.get(0);
+		if(!isCubeMap) return null;
+		return getBuffer(0, 0);
 	}
 
 	public ByteBuffer getCubeMapNegativeX() {
-		if(!header.hasCaps2CubeMap) return null;
-		return bdata.get(1);
+		if(!isCubeMap) return null;
+		return getBuffer(0, 1);
 	}
 
 	public ByteBuffer getCubeMapPositiveY() {
-		if(!header.hasCaps2CubeMap) return null;
-		return bdata.get(2);
+		if(!isCubeMap) return null;
+		return getBuffer(0, 2);
 	}
 
 	public ByteBuffer getCubeMapNegativeY() {
-		if(!header.hasCaps2CubeMap) return null;
-		return bdata.get(3);
+		if(!isCubeMap) return null;
+		return getBuffer(0, 3);
 	}
 
 	public ByteBuffer getCubeMapPositiveZ() {
-		if(!header.hasCaps2CubeMap) return null;
-		return bdata.get(4);
+		if(!isCubeMap) return null;
+		return getBuffer(0, 4);
 	}
 
 	public ByteBuffer getCubeMapNegativeZ() {
-		if(!header.hasCaps2CubeMap) return null;
-		return bdata.get(5);
+		if(!isCubeMap) return null;
+		return getBuffer(0, 5);
 	}
 
 	public ByteBuffer getCubeMapMipPXLevel(int level) {
-		level = Math.min(Math.min(header.dwMipMapCount, level), Math.max(level, 0));
-		return this.bdata2.get((level*1)-1);
+		if(!isCubeMap) return null;
+		return getBuffer(level, 0);
 	}
 
 	public ByteBuffer getCubeMapMipNXLevel(int level) {
-		level = Math.min(Math.min(header.dwMipMapCount, level), Math.max(level, 0));
-		return this.bdata2.get((level*2)-1);
+		if(!isCubeMap) return null;
+		return getBuffer(level, 1);
 	}
 
 	public ByteBuffer getCubeMapMipPYLevel(int level) {
-		level = Math.min(Math.min(header.dwMipMapCount, level), Math.max(level, 0));
-		return this.bdata2.get((level*3)-1);
+		if(!isCubeMap) return null;
+		return getBuffer(level, 2);
 	}
 
 	public ByteBuffer getCubeMapMipNYLevel(int level) {
-		level = Math.min(Math.min(header.dwMipMapCount, level), Math.max(level, 0));
-		return this.bdata2.get((level*4)-1);
+		if(!isCubeMap) return null;
+		return getBuffer(level, 3);
 	}
 
 	public ByteBuffer getCubeMapMipPZLevel(int level) {
-		level = Math.min(Math.min(header.dwMipMapCount, level), Math.max(level, 0));
-		return this.bdata2.get((level*5)-1);
+		if(!isCubeMap) return null;
+		return getBuffer(level, 4);
 	}
 
 	public ByteBuffer getCubeMapMipNZLevel(int level) {
-		level = Math.min(Math.min(header.dwMipMapCount, level), Math.max(level, 0));
-		return this.bdata2.get((level*6)-1);
+		if(!isCubeMap) return null;
+		return getBuffer(level, 5);
 	}
 
 	/**
@@ -340,10 +405,6 @@ public class DDSFile {
 	 */
 	public int getFormat() {
 		return format;
-	}
-
-	public int getPitchOrLinearSize() {
-		return imageSize;
 	}
 
 	/**
