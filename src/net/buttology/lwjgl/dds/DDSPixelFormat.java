@@ -108,28 +108,5 @@ public class DDSPixelFormat {
 		if(!isCompressed && !hasFlagRgb) {
 			throw new IOException("Invalid compression values.");
 		}
-		
-		if(DDSFile.printDebug) {			
-			String sysout = "\nDDSPixelFormat:"
-					+ "\n\tdwSize:\t\t\t" + dwSize
-					+ "\n\tFlags:\t\t\t";
-			
-			if(hasFlagAlphaPixels)	sysout += "DDPF_ALPHAPIXELS | ";
-			if(hasFlagAlpha)		sysout += "DDPF_ALPHA | ";
-			if(hasFlagFourCC)		sysout += "DDPF_FOURCC | ";
-			if(hasFlagRgb)			sysout += "DDPF_RGB | ";
-			if(hasFlagYuv)			sysout += "DDPF_YUV | ";
-			if(hasFlagLuminance)	sysout += "DDPF_LUMINANCE";
-			
-			if(hasFlagFourCC) sysout += "\n\tsFourCC:\t\t" + sFourCC;
-			if(hasFlagRgb) {
-				sysout += "\n\tdwRGBBitCount:\t" + dwRGBBitCount
-						+ "\n\tdwRBitMask:\t\t" + dwRBitMask
-						+ "\n\tdwGBitMask:\t\t" + dwGBitMask
-						+ "\n\tdwBBitMask:\t\t" + dwBBitMask;
-			}
-			sysout += "\n\tisCompressed:\t\t" + isCompressed;
-			System.out.println(sysout);
-		}
 	}	
 }

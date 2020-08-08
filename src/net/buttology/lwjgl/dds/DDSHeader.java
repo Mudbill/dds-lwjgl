@@ -199,47 +199,5 @@ public class DDSHeader {
 		if(!hasCapsTexture) {
 			throw new IOException("Required caps missing.");
 		}
-		
-		// Print out the debug information received from successful load
-		if(DDSFile.printDebug) {
-			String sysout = "\nDDSHeader:"
-					+ "\n\tdwSize:\t\t\t" + dwSize
-					+ "\n\tFlags:\t\t\t";
-			
-			if(hasFlagCaps) sysout += "DDSD_CAPS | ";
-			if(hasFlagHeight) sysout += "DDSD_HEIGHT | ";
-			if(hasFlagWidth) sysout += "DDSD_WIDTH | ";
-			if(hasFlagPitch) sysout += "DDSD_PITCH | ";
-			if(hasFlagPixelFormat) sysout += "DDSD_PIXELFORMAT | ";
-			if(hasFlagMipMapCount) sysout += "DDSD_MIPMAPCOUNT | ";
-			if(hasFlagLinearSize) sysout += "DDSD_LINEARSIZE | ";
-			if(hasFlagDepth) sysout += "DDSD_DEPTH | ";
-			
-			sysout += "\n\tdwHeight:\t\t" + dwHeight
-					+ "\n\tdwWidth:\t\t" + dwWidth;
-			
-			if(hasFlagPitch | hasFlagLinearSize) sysout += "\n\tdwPitchOrLinearSize:\t" + dwPitchOrLinearSize;
-			if(hasFlagDepth) sysout += "\n\tdwDepth:\t\t" + dwDepth;
-			if(hasFlagMipMapCount) sysout += "\n\tdwMipMapCount:\t\t" + dwMipMapCount;
-			if(hasFlagCaps) {
-				sysout += "\n\tCaps:\t\t\t";
-				if(hasCapsComplex) sysout += "DDSCAPS_COMPLEX | ";
-				if(hasCapsMipMap) sysout += "DDSCAPS_MIPMAP | ";
-				if(hasCapsTexture) sysout += "DDSCAPS_TEXTURE | ";
-				
-				if(hasCapsComplex) {
-					sysout += "\n\tCaps2:\t\t\t";
-					if(hasCaps2CubeMap) sysout += "DDSCAPS2_CUBEMAP | ";
-					if(hasCaps2CubeMapPX) sysout += "DDSCAPS2_CUBEMAP_POSITIVEX | ";
-					if(hasCaps2CubeMapNX) sysout += "DDSCAPS_CUBEMAP_NEGATIVEX | ";
-					if(hasCaps2CubeMapPY) sysout += "DDSCAPS2_CUBEMAP_POSITIVEY | ";
-					if(hasCaps2CubeMapNY) sysout += "DDSCAPS_CUBEMAP_NEGATIVEY | ";
-					if(hasCaps2CubeMapPZ) sysout += "DDSCAPS2_CUBEMAP_POSITIVEZ | ";
-					if(hasCaps2CubeMapNZ) sysout += "DDSCAPS_CUBEMAP_NEGATIVEZ | ";
-					if(hasCaps2Volume) sysout += "DDSCAPS2_VOLUME";
-				}
-			}
-			System.out.println(sysout);
-		}
 	}
 }
