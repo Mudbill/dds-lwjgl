@@ -1,6 +1,5 @@
 package net.buttology.lwjgl.dds;
 
-import com.typesafe.config.ConfigException;
 import org.lwjgl.opengl.*;
 import static org.lwjgl.opengl.EXTTextureCompressionS3TC.*;
 import static org.lwjgl.opengl.EXTTextureCompressionRGTC.*;
