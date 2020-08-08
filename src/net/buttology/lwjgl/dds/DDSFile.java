@@ -412,6 +412,6 @@ public class DDSFile {
 	 * @return true if cubemap, else false
 	 */
 	public boolean isCubeMap() {
-		return header.hasCaps2CubeMap;
+		return isCubeMap;
 	}
 }
