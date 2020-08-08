@@ -72,15 +72,6 @@ public class DDSFile {
 	 * Whether this DDS document is a cubemap or not
 	 */
 	private boolean				isCubeMap;
-
-	/**
-	 * Calculate the pitch or linear size of the document based on the given block size. Applies to block compression formats.
-	 * @param blockSize
-	 * @return
-	 */
-	private int calculatePitchBC(int width, int blockSize) {
-		return Math.max(1, ((width + 3) / 4)) * blockSize;
-	}
 	
 	public DDSFile() {}
 
@@ -110,7 +101,7 @@ public class DDSFile {
 
 	/**
 	 * Loads a DDS file from the given file stream.
-	 * @param file
+	 * @param fis
 	 * @throws IOException
 	 */
 	public DDSFile(FileInputStream fis) throws IOException
@@ -230,7 +221,7 @@ public class DDSFile {
 		{
 			for(int j = 0; j < levels; j++)
 			{
-				int size = calculateSize(blockSize, header.dwWidth >> j, header.dwHeight >> j);
+				int size = calculateSizeBC(blockSize, header.dwWidth >> j, header.dwHeight >> j);
 				byte[] bytes = new byte[size];
 
 				fis.read(bytes);
@@ -244,11 +235,21 @@ public class DDSFile {
 		return ByteBuffer.wrap(bMagic).order(ByteOrder.LITTLE_ENDIAN).getInt() == DDS_MAGIC;
 	}
 
-	private int calculateSize(int blockSize, int width, int height) {
-		return Math.max(1, ((height + 3) / 4)) * calculatePitch(blockSize, width);
+	/**
+	 * Calculate the linear size of the document based on the given block size. Applies to block compression formats.
+	 * @param blockSize
+	 * @return linear size in bytes
+	 */
+	private int calculateSizeBC(int blockSize, int width, int height) {
+		return Math.max(1, ((height + 3) / 4)) * calculatePitchBC(blockSize, width);
 	}
 
-	private int calculatePitch(int blockSize, int width) {
+	/**
+	 * Calculate the pitch of the document based on the given block size. Applies to block compression formats.
+	 * @param blockSize
+	 * @return pitch in bytes
+	 */
+	private int calculatePitchBC(int blockSize, int width) {
 		return Math.max(1, ((width + 3) / 4)) * blockSize;
 	}
 
