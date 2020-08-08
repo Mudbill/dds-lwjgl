@@ -10,12 +10,13 @@ Features
 
 dds-lwjgl currently has a selection of restrictions, as I originally developed this for a very specific purpose. Please consider these.
 
-* Supports loading standard 124 byte headers (not extended D3D headers)
-* Supports loading the compression formats: DXT1, DXT3, DXT5, ATI2
+* Supports loading standard headers and DXT10 headers
+* Supports loading the compression formats: DXT1 (BC1), DXT3 (BC2), DXT5 (BC3), ATI1 (BC4), ATI2 (BC5), BC6H and BC7
 * Supports reading 2D Textures with and without mipmaps
 * Supports loading 3D Cubemap textures with and without mipmaps
 * Does not support volume maps.
 * Does not support legacy formats.
+* Does not support uncompressed formats.
 
 This list may change with updates.
 
@@ -37,8 +38,10 @@ For 2D textures:
 int textureID = GL11.glGenTextures();       // Generate a texture ID.
 GL13.glActiveTexture(GL13.GL_TEXTURE0);     // Depends on your implementation
 GL11.glBindTexture(GL11.GL_TEXTURE_2D, textureID);
-GL13.glCompressedTexImage2D(GL11.GL_TEXTURE_2D, 0, file.getFormat(), file.getWidth(), file.getHeight(), 0, file.getBuffer());
-GL30.glGenerateMipmap(GL11.GL_TEXTURE_2D);  // Optional
+for (int level = 0; level < file.getMipMapCount(); level++)
+    GL13.glCompressedTexImage2D(GL11.GL_TEXTURE_2D, level, file.getFormat(), file.getWidth(level), file.getHeight(level), 0, file.getBuffer(level));
+GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL12.GL_TEXTURE_BASE_LEVEL, 0);
+GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAX_LEVEL, file.getMipMapCount() - 1);
 ```
 
 For Cubemaps:
