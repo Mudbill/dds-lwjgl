@@ -3,8 +3,8 @@ package net.buttology.lwjgl.dds;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-public class DDSPixelFormat {
-
+public class DDSPixelFormat
+{
 	/* Flags */
 	protected static final int DDPF_ALPHAPIXELS	= 0x00001;
 	protected static final int DDPF_ALPHA		= 0x00002;
@@ -75,13 +75,18 @@ public class DDSPixelFormat {
 	 * @param fourCC
 	 * @return
 	 */
-	private String createFourCCString(int fourCC) {
+	private String createFourCCString(int fourCC)
+	{
 		byte[] fourCCString = new byte[DDPF_FOURCC];
 		for(int i = 0; i < fourCCString.length; i++) fourCCString[i] = (byte) (fourCC >> (i*8));
 		return new String(fourCCString);
 	}
 	
-	protected DDSPixelFormat(ByteBuffer header) throws IOException {
+	protected DDSPixelFormat(ByteBuffer header) throws IOException
+	{
+		if (header.remaining() < 32)
+			throw new IOException("PixelFormat size invalid. Should be 32 but is " + dwSize);
+		
 		dwSize			= header.getInt();
 		dwFlags			= header.getInt();
 		dwFourCC		= header.getInt();
@@ -92,11 +97,7 @@ public class DDSPixelFormat {
 		dwABitMask		= header.getInt();
 		
 		sFourCC = createFourCCString(dwFourCC);
-		
-		if(dwSize != 32) {
-			throw new IOException("PixelFormat size invalid: " + dwSize + ". Should be 32.");
-		}
-		
+				
 		hasFlagAlphaPixels	= (dwFlags & DDPF_ALPHAPIXELS)	== DDPF_ALPHAPIXELS;
 		hasFlagAlpha		= (dwFlags & DDPF_ALPHA)		== DDPF_ALPHA;
 		hasFlagFourCC		= (dwFlags & DDPF_FOURCC)		== DDPF_FOURCC;
@@ -105,8 +106,7 @@ public class DDSPixelFormat {
 		hasFlagLuminance	= (dwFlags & DDPF_LUMINANCE)	== DDPF_LUMINANCE;
 		
 		isCompressed = hasFlagFourCC;
-		if(!isCompressed && !hasFlagRgb) {
+		if (!isCompressed && !hasFlagRgb)
 			throw new IOException("Invalid compression values.");
-		}
 	}	
 }

@@ -3,8 +3,8 @@ package net.buttology.lwjgl.dds;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-public class DDSHeader {
-	
+public class DDSHeader
+{
 	/* Flags */
 	protected static final int 	DDSD_CAPS			= 0x000001;
 	protected static final int 	DDSD_HEIGHT			= 0x000002;
@@ -139,10 +139,10 @@ public class DDSHeader {
 	protected boolean	hasCaps2CubeMapNZ;
 	protected boolean	hasCaps2Volume;
 
-	protected DDSHeader(ByteBuffer header) throws IOException {
-		if(header.capacity() != 124) {
-			throw new IOException("Invalid header size: " + header.capacity() + ". Should be 124.");
-		}
+	protected DDSHeader(ByteBuffer header) throws IOException
+	{
+		if (header.capacity() != 124)
+			throw new IOException("Invalid header size. Should be 124 but is " + header.capacity());
 		
 		dwSize				= header.getInt();
 		dwFlags				= header.getInt();
@@ -153,7 +153,7 @@ public class DDSHeader {
 		dwMipMapCount		= header.getInt();
 		
 		// Unused bytes
-		for(int i = 0; i < dwReserved.length; i++) dwReserved[i] = header.getInt();
+		for (int i = 0; i < dwReserved.length; i++) dwReserved[i] = header.getInt();
 		
 		ddspf 				= new DDSPixelFormat(header);
 		
@@ -192,12 +192,10 @@ public class DDSHeader {
 		
 		// Do some error checking.
 		
-		if(!hasFlagCaps || !hasFlagHeight || !hasFlagWidth || !hasFlagPixelFormat) {
-			throw new IOException("Required flags missing.");
-		}
+		if (!hasFlagCaps || !hasFlagHeight || !hasFlagWidth || !hasFlagPixelFormat)
+			throw new IOException("Required DDS internal flags missing.");
 		
-		if(!hasCapsTexture) {
-			throw new IOException("Required caps missing.");
-		}
+		if (!hasCapsTexture)
+			throw new IOException("Required DDS internal caps missing.");
 	}
 }

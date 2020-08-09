@@ -36,7 +36,8 @@ import static org.lwjgl.opengl.EXTTextureCompressionRGTC.*;
  * @author Magnus Bull
  * @version 2.0.0
  */
-public class DDSFile {
+public class DDSFile
+{
 	/**
 	 * A 32-bit representation of the character sequence <code>"DDS "</code> which is the magic word for DDS files
 	 */
@@ -81,7 +82,8 @@ public class DDSFile {
 	 * @throws IOException
 	 * @throws FileNotFoundException
 	 */
-	public DDSFile(String filePath) throws IOException, FileNotFoundException {
+	public DDSFile(String filePath) throws IOException, FileNotFoundException
+	{
 		this(new File(filePath));
 	}
 
@@ -91,12 +93,9 @@ public class DDSFile {
 	 * @throws IOException
 	 * @throws FileNotFoundException
 	 */
-	public DDSFile(File file) throws IOException, FileNotFoundException {
-		if(!file.isFile()) {
-			throw new FileNotFoundException("DDS: File not found " + file.getAbsolutePath());
-		}
-		FileInputStream fis = new FileInputStream(file);
-		this.loadFile(fis);
+	public DDSFile(File file) throws IOException, FileNotFoundException
+	{
+		this.loadFile(file);
 	}
 
 	/**
@@ -115,7 +114,8 @@ public class DDSFile {
 	 * @throws IOException
 	 * @throws FileNotFoundException
 	 */
-	public void loadFile(String file) throws IOException, FileNotFoundException {
+	public void loadFile(String file) throws IOException, FileNotFoundException
+	{
 		this.loadFile(new File(file));
 	}
 
@@ -127,19 +127,12 @@ public class DDSFile {
 	 */
 	public void loadFile(File file) throws IOException
 	{
-		if(!file.isFile())
-		{
+		if (!file.isFile())
 			throw new FileNotFoundException("DDS: File not found: " + file.getAbsolutePath());
-		}
 
-		FileInputStream fis = new FileInputStream(file);
-		try
+		try (FileInputStream fis = new FileInputStream(file))
 		{
 			loadFile(fis);
-		}
-		finally
-		{
-			fis.close();
 		}
 	}
 
@@ -150,13 +143,12 @@ public class DDSFile {
 	 */
 	public void loadFile(FileInputStream fis) throws IOException
 	{
-		if(fis.available() < 128) {
+		if (fis.available() < 128)
 			throw new IOException("Invalid file size. Must be at least 128 bytes.");
-		}
 
 		byte[] bMagic = new byte[4];
 		fis.read(bMagic);
-		if(!isDDSFile(bMagic))
+		if (!isDDSFile(bMagic))
 		{
 			throw new IOException("Invalid DDS file. Magic number does not match.");
 		}
@@ -167,36 +159,37 @@ public class DDSFile {
 		
 		int blockSize = 16;
 		headerDXT10 = null;
-		switch(header.ddspf.sFourCC) {
-		case "DXT1":
-			format = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
-			blockSize = 8;
-			break;
-		case "DXT3":
-			format = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
-			break;
-		case "DXT5":
-			format = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
-			break;
-		case "ATI1":
-			format = GL_COMPRESSED_RED_RGTC1_EXT;
-			blockSize = 8;
-			break;
-		case "ATI2":
-			format = GL_COMPRESSED_RED_GREEN_RGTC2_EXT;
-			break;
-		case "DX10":
-			byte[] bHeaderDXT10 = new byte[20];
-			fis.read(bHeaderDXT10);
-			headerDXT10 = new DDSHeaderDXT10(newByteBuffer(bHeaderDXT10));
-			format = headerDXT10.getFormat();
-			blockSize = headerDXT10.getBlockSize();
-			break;
-		default:
-			throw new IOException("Surface format unknown or not supported: " + header.ddspf.sFourCC);
+		switch (header.ddspf.sFourCC)
+		{
+			case "DXT1":
+				format = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
+				blockSize = 8;
+				break;
+			case "DXT3":
+				format = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+				break;
+			case "DXT5":
+				format = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+				break;
+			case "ATI1":
+				format = GL_COMPRESSED_RED_RGTC1_EXT;
+				blockSize = 8;
+				break;
+			case "ATI2":
+				format = GL_COMPRESSED_RED_GREEN_RGTC2_EXT;
+				break;
+			case "DX10":
+				byte[] bHeaderDXT10 = new byte[20];
+				fis.read(bHeaderDXT10);
+				headerDXT10 = new DDSHeaderDXT10(newByteBuffer(bHeaderDXT10));
+				format = headerDXT10.getFormat();
+				blockSize = headerDXT10.getBlockSize();
+				break;
+			default:
+				throw new IOException("Surface format unknown or not supported: " + header.ddspf.sFourCC);
 		}
 
-		if(header.hasCaps2CubeMap || (headerDXT10 != null && headerDXT10.isTextureCube))
+		if (header.hasCaps2CubeMap || (headerDXT10 != null && headerDXT10.isTextureCube))
 		{
 			surfaceCount = 6;
 			isCubeMap = true; 
@@ -214,12 +207,14 @@ public class DDSFile {
 
 		levels = 1;
 		if (header.hasFlagMipMapCount)
+		{
 			levels = Math.max(1, header.dwMipMapCount);
+		}
 
 		bdata = new ArrayList<ByteBuffer>();
-		for(int i = 0; i < surfaceCount; i++)
+		for (int i = 0; i < surfaceCount; i++)
 		{
-			for(int j = 0; j < levels; j++)
+			for (int j = 0; j < levels; j++)
 			{
 				int size = calculateSizeBC(blockSize, header.dwWidth >> j, header.dwHeight >> j);
 				byte[] bytes = new byte[size];
@@ -230,9 +225,25 @@ public class DDSFile {
 		}
 	}
 
+	/**
+	 * Validate that the first 4 bytes in the given byte array match the magic word for DDS files.
+	 * @param bMagic
+	 * @return true if DDS file
+	 */
 	public static boolean isDDSFile(byte[] bMagic)
 	{
 		return ByteBuffer.wrap(bMagic).order(ByteOrder.LITTLE_ENDIAN).getInt() == DDS_MAGIC;
+	}
+	
+	/**
+	 * Creates a new ByteBuffer and stores the data within it before returning it.
+	 */
+	public static ByteBuffer newByteBuffer(byte[] data)
+	{
+		ByteBuffer buffer = ByteBuffer.allocateDirect(data.length).order(ByteOrder.LITTLE_ENDIAN);
+		buffer.put(data);
+		buffer.flip();
+		return buffer;
 	}
 
 	/**
@@ -240,7 +251,8 @@ public class DDSFile {
 	 * @param blockSize
 	 * @return linear size in bytes
 	 */
-	private int calculateSizeBC(int blockSize, int width, int height) {
+	private int calculateSizeBC(int blockSize, int width, int height)
+	{
 		return Math.max(1, ((height + 3) / 4)) * calculatePitchBC(blockSize, width);
 	}
 
@@ -249,25 +261,17 @@ public class DDSFile {
 	 * @param blockSize
 	 * @return pitch in bytes
 	 */
-	private int calculatePitchBC(int blockSize, int width) {
+	private int calculatePitchBC(int blockSize, int width)
+	{
 		return Math.max(1, ((width + 3) / 4)) * blockSize;
-	}
-
-	/**
-	 * Creates a new ByteBuffer and stores the data within it before returning it.
-	 */
-	public static ByteBuffer newByteBuffer(byte[] data) {
-		ByteBuffer buffer = ByteBuffer.allocateDirect(data.length).order(ByteOrder.LITTLE_ENDIAN);
-		buffer.put(data);
-		buffer.flip();
-		return buffer;
 	}
 
 	/**
 	 * Get the width of this image document.
 	 * @return width in pixels
 	 */
-	public int getWidth() {
+	public int getWidth()
+	{
 		return header.dwWidth;
 	}
 
@@ -276,7 +280,8 @@ public class DDSFile {
 	 * @param level
 	 * @return width in pixels
 	 */
-	public int getWidth(int level) {
+	public int getWidth(int level)
+	{
 		return Math.max(header.dwWidth >> level, 1);
 	}
 
@@ -284,7 +289,8 @@ public class DDSFile {
 	 * Get the height of this image document.
 	 * @return height in pixels
 	 */
-	public int getHeight() {
+	public int getHeight()
+	{
 		return header.dwHeight;
 	}
 
@@ -293,7 +299,8 @@ public class DDSFile {
 	 * @param level
 	 * @return height in pixels
 	 */
-	public int getHeight(int level) {
+	public int getHeight(int level)
+	{
 		return Math.max(header.dwHeight >> level, 1);
 	}
 
@@ -301,7 +308,8 @@ public class DDSFile {
 	 * Gets the main surface data buffer - usually the first full-sized image.
 	 * @return
 	 */
-	public ByteBuffer getBuffer() {
+	public ByteBuffer getBuffer()
+	{
 		return getBuffer(0);
 	}
 
@@ -309,7 +317,8 @@ public class DDSFile {
 	 * Gets a specific mipmap level from the main surface.
 	 * If specified outside the range of available mipmaps, the closest one is returned.
 	 */
-	public ByteBuffer getBuffer(int level) {
+	public ByteBuffer getBuffer(int level)
+	{
 		level = Math.min(Math.min(levels - 1, level), Math.max(level, 0));
 		return this.bdata.get(level);
 	}
@@ -318,21 +327,31 @@ public class DDSFile {
 	 * Get the number of mipmap levels of this document.
 	 * @return number of mipmaps
 	 */
-	public int getMipMapCount() {
+	public int getMipMapCount()
+	{
 		return this.levels;
 	}
 
 	/**
 	 * Gets a specific mipmap level from a specific surface.
 	 * If specified outside the range of available surfaces, the closest one is returned.
+	 * @param level
+	 * @param surface
+	 * @return closest image buffer
 	 */
-	public ByteBuffer getBuffer(int level, int surface) {
+	public ByteBuffer getBuffer(int level, int surface)
+	{
 		level = Math.min(Math.min(levels - 1, level), Math.max(level, 0));
 		surface = Math.min(Math.min(surfaceCount - 1, surface), Math.max(surface, 0));
 		return this.bdata.get(level * (surface + 1));
 	}
 
-	public int getSurfaceCount() {
+	/**
+	 * Get the number of surfaces in this document.
+	 * @return number of surfaces
+	 */
+	public int getSurfaceCount()
+	{
 		return this.surfaceCount;
 	}
 
@@ -340,71 +359,128 @@ public class DDSFile {
 	 * Get the surface buffer for the positive X direction of a cubemap. If this document is not a cubemap, null is returned.
 	 * @return positive X buffer, or null if not cubemap.
 	 */
-	public ByteBuffer getCubeMapPositiveX() {
-		if(!isCubeMap) return null;
+	public ByteBuffer getCubeMapPositiveX()
+	{
+		if (!isCubeMap) return null;
 		return getBuffer(0, 0);
 	}
-
-	public ByteBuffer getCubeMapNegativeX() {
-		if(!isCubeMap) return null;
+	
+	/**
+	 * Get the surface buffer for the negative X direction of a cubemap. If this document is not a cubemap, null is returned.
+	 * @return negative X buffer, or null if not cubemap.
+	 */
+	public ByteBuffer getCubeMapNegativeX()
+	{
+		if (!isCubeMap) return null;
 		return getBuffer(0, 1);
 	}
 
-	public ByteBuffer getCubeMapPositiveY() {
-		if(!isCubeMap) return null;
+	/**
+	 * Get the surface buffer for the positive Y direction of a cubemap. If this document is not a cubemap, null is returned.
+	 * @return positive Y buffer, or null if not cubemap.
+	 */
+	public ByteBuffer getCubeMapPositiveY()
+	{
+		if (!isCubeMap) return null;
 		return getBuffer(0, 2);
 	}
 
-	public ByteBuffer getCubeMapNegativeY() {
-		if(!isCubeMap) return null;
+	/**
+	 * Get the surface buffer for the negative Y direction of a cubemap. If this document is not a cubemap, null is returned.
+	 * @return negative Y buffer, or null if not cubemap.
+	 */
+	public ByteBuffer getCubeMapNegativeY()
+	{
+		if (!isCubeMap) return null;
 		return getBuffer(0, 3);
 	}
 
-	public ByteBuffer getCubeMapPositiveZ() {
-		if(!isCubeMap) return null;
+	/**
+	 * Get the surface buffer for the positive Z direction of a cubemap. If this document is not a cubemap, null is returned.
+	 * @return positive Z buffer, or null if not cubemap.
+	 */
+	public ByteBuffer getCubeMapPositiveZ()
+	{
+		if (!isCubeMap) return null;
 		return getBuffer(0, 4);
 	}
 
-	public ByteBuffer getCubeMapNegativeZ() {
-		if(!isCubeMap) return null;
+	/**
+	 * Get the surface buffer for the negative Z direction of a cubemap. If this document is not a cubemap, null is returned.
+	 * @return negative Z buffer, or null if not cubemap.
+	 */
+	public ByteBuffer getCubeMapNegativeZ()
+	{
+		if (!isCubeMap) return null;
 		return getBuffer(0, 5);
 	}
 
-	public ByteBuffer getCubeMapMipPXLevel(int level) {
-		if(!isCubeMap) return null;
+	/**
+	 * Get the surface buffer of the given mipmap level from the positive X direction of a cubemap. If this document is not a cubemap, null is returned.
+	 * @return positive X buffer, or null if not cubemap.
+	 */
+	public ByteBuffer getCubeMapPositiveXMipLevel(int level)
+	{
+		if (!isCubeMap) return null;
 		return getBuffer(level, 0);
 	}
 
-	public ByteBuffer getCubeMapMipNXLevel(int level) {
-		if(!isCubeMap) return null;
+	/**
+	 * Get the surface buffer of the given mipmap level from the negative X direction of a cubemap. If this document is not a cubemap, null is returned.
+	 * @return negative X buffer, or null if not cubemap.
+	 */
+	public ByteBuffer getCubeMapNegativeXMipLevel(int level)
+	{
+		if (!isCubeMap) return null;
 		return getBuffer(level, 1);
 	}
 
-	public ByteBuffer getCubeMapMipPYLevel(int level) {
-		if(!isCubeMap) return null;
+	/**
+	 * Get the surface buffer of the given mipmap level from the positive Y direction of a cubemap. If this document is not a cubemap, null is returned.
+	 * @return positive Y buffer, or null if not cubemap.
+	 */
+	public ByteBuffer getCubeMapPositiveYMipLevel(int level)
+	{
+		if (!isCubeMap) return null;
 		return getBuffer(level, 2);
 	}
 
-	public ByteBuffer getCubeMapMipNYLevel(int level) {
-		if(!isCubeMap) return null;
+	/**
+	 * Get the surface buffer of the given mipmap level from the negative Y direction of a cubemap. If this document is not a cubemap, null is returned.
+	 * @return negative Y buffer, or null if not cubemap.
+	 */
+	public ByteBuffer getCubeMapNegativeYMipLevel(int level)
+	{
+		if (!isCubeMap) return null;
 		return getBuffer(level, 3);
 	}
 
-	public ByteBuffer getCubeMapMipPZLevel(int level) {
-		if(!isCubeMap) return null;
+	/**
+	 * Get the surface buffer of the given mipmap level from the positive Z direction of a cubemap. If this document is not a cubemap, null is returned.
+	 * @return positive Z buffer, or null if not cubemap.
+	 */
+	public ByteBuffer getCubeMapPositiveZMipLevel(int level)
+	{
+		if (!isCubeMap) return null;
 		return getBuffer(level, 4);
 	}
 
-	public ByteBuffer getCubeMapMipNZLevel(int level) {
-		if(!isCubeMap) return null;
+	/**
+	 * Get the surface buffer of the given mipmap level from the negative Z direction of a cubemap. If this document is not a cubemap, null is returned.
+	 * @return negative Z buffer, or null if not cubemap.
+	 */
+	public ByteBuffer getCubeMapNegativeZMipLevel(int level)
+	{
+		if (!isCubeMap) return null;
 		return getBuffer(level, 5);
 	}
 
 	/**
-	 * Gets the compression format used for this DDS document.
+	 * Get the compression format used for this DDS document.
 	 * @return integer representing the format in LWJGL.
 	 */
-	public int getFormat() {
+	public int getFormat()
+	{
 		return format;
 	}
 
@@ -412,7 +488,8 @@ public class DDSFile {
 	 * Whether this DDS document is a cubemap or not.
 	 * @return true if cubemap, else false
 	 */
-	public boolean isCubeMap() {
+	public boolean isCubeMap()
+	{
 		return isCubeMap;
 	}
 }
