@@ -84,9 +84,6 @@ public class DDSPixelFormat
 	
 	protected DDSPixelFormat(ByteBuffer header) throws IOException
 	{
-		if (header.remaining() < 32)
-			throw new IOException("PixelFormat size invalid. Should be 32 but is " + dwSize);
-		
 		dwSize			= header.getInt();
 		dwFlags			= header.getInt();
 		dwFourCC		= header.getInt();
