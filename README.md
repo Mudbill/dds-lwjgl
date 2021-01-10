@@ -26,7 +26,7 @@ Usage
 DDSFile file = new DDSFile("path/to/file");
 ```
 
-This will immediately load the file at the given path. You can also supply a `File` or a `FileInputStream`. Optionally use the `loadFile` method after initializing the object if you prefer.
+This will immediately load the file at the given path. You can also supply a `File` or `InputStream`. Optionally use the `loadFile` method after initializing the object if you prefer.
 
 To get the texture data and load it into OpenGL, you can do something like this:
 

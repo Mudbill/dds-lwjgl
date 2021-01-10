@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020  Magnus Bull
+ * Copyright (C) 2018-2021  Magnus Bull
  *
  *  This file is part of dds-lwjgl.
  *
@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
@@ -34,7 +35,7 @@ import static org.lwjgl.opengl.EXTTextureCompressionRGTC.*;
  * Can load DirectDraw Surface (*.dds) texture files for use in LWJGL.
  * 
  * @author Magnus Bull
- * @version 2.0.0
+ * @version 2.1.0
  */
 public class DDSFile
 {
@@ -97,15 +98,15 @@ public class DDSFile
 	{
 		this.loadFile(file);
 	}
-
+	
 	/**
-	 * Loads a DDS file from the given file stream.
-	 * @param fis
+	 * Loads a DDS document from the given stream.
+	 * @param is
 	 * @throws IOException
 	 */
-	public DDSFile(FileInputStream fis) throws IOException
+	public DDSFile(InputStream is) throws IOException
 	{
-		this.loadFile(fis);
+		this.load(is);
 	}
 	
 	/**
@@ -130,31 +131,41 @@ public class DDSFile
 		if (!file.isFile())
 			throw new FileNotFoundException("DDS: File not found: " + file.getAbsolutePath());
 
-		try (FileInputStream fis = new FileInputStream(file))
+		try (InputStream is = new FileInputStream(file))
 		{
-			loadFile(fis);
+			load(is);
 		}
 	}
-
+	
 	/**
-	 * Loads a DDS file.
+	 * Loads a DDS document from a file stream
 	 * @param fis
 	 * @throws IOException
 	 */
 	public void loadFile(FileInputStream fis) throws IOException
 	{
-		if (fis.available() < 128)
-			throw new IOException("Invalid file size. Must be at least 128 bytes.");
+		this.load(fis);
+	}
+
+	/**
+	 * Loads a DDS document
+	 * @param stream
+	 * @throws IOException
+	 */
+	public void load(InputStream stream) throws IOException
+	{
+		if (stream.available() < 128)
+			throw new IOException("Invalid document size. Must be at least 128 bytes.");
 
 		byte[] bMagic = new byte[4];
-		fis.read(bMagic);
+		stream.read(bMagic);
 		if (!isDDSFile(bMagic))
 		{
-			throw new IOException("Invalid DDS file. Magic number does not match.");
+			throw new IOException("Invalid DDS document. Magic number does not match.");
 		}
 
 		byte[] bHeader = new byte[124];
-		fis.read(bHeader);
+		stream.read(bHeader);
 		header = new DDSHeader(newByteBuffer(bHeader));
 		
 		int blockSize = 16;
@@ -180,7 +191,7 @@ public class DDSFile
 				break;
 			case "DX10":
 				byte[] bHeaderDXT10 = new byte[20];
-				fis.read(bHeaderDXT10);
+				stream.read(bHeaderDXT10);
 				headerDXT10 = new DDSHeaderDXT10(newByteBuffer(bHeaderDXT10));
 				format = headerDXT10.getFormat();
 				blockSize = headerDXT10.getBlockSize();
@@ -219,7 +230,7 @@ public class DDSFile
 				int size = calculateSizeBC(blockSize, header.dwWidth >> j, header.dwHeight >> j);
 				byte[] bytes = new byte[size];
 
-				fis.read(bytes);
+				stream.read(bytes);
 				bdata.add(newByteBuffer(bytes));
 			}
 		}
