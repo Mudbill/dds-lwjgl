@@ -43,7 +43,7 @@ class DDSHeaderDXT10 {
     protected DDSHeaderDXT10(ByteBuffer header) throws IOException {
         if (header.capacity() != 20) {
             throw new IOException("DXT10 header needs 20 bytes");
-		}
+        }
 
         dxgiFormat = header.getInt();
         resourceDimension = header.getInt();

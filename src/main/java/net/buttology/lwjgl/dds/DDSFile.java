@@ -83,7 +83,7 @@ public class DDSFile {
      * @throws FileNotFoundException
      */
     public DDSFile(String filePath) throws IOException, FileNotFoundException {
-		this(new File(filePath));
+        this(new File(filePath));
     }
 
     /**
@@ -124,7 +124,7 @@ public class DDSFile {
     public void loadFile(File file) throws IOException {
         if (!file.isFile()) {
             throw new FileNotFoundException("DDS: File not found: " + file.getAbsolutePath());
-		}
+        }
 
         try (InputStream is = new FileInputStream(file)) {
             load(is);
@@ -148,7 +148,7 @@ public class DDSFile {
     public void load(InputStream stream) throws IOException {
         if (stream.available() < 128) {
             throw new IOException("Invalid document size. Must be at least 128 bytes.");
-		}
+        }
 
         byte[] bMagic = new byte[4];
         stream.read(bMagic);
