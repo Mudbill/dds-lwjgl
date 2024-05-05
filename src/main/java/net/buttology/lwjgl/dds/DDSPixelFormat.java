@@ -79,8 +79,8 @@ public class DDSPixelFormat {
         byte[] fourCCString = new byte[DDPF_FOURCC];
 
         for (int i = 0; i < fourCCString.length; i++) {
-			fourCCString[i] = (byte) (fourCC >> (i*8));
-		}
+            fourCCString[i] = (byte) (fourCC >> (i*8));
+        }
 
         return new String(fourCCString);
     }
@@ -108,6 +108,6 @@ public class DDSPixelFormat {
 
         if (!isCompressed && !hasFlagRgb) {
             throw new IOException("Invalid compression values.");
-		}
+        }
     }    
 }

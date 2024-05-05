@@ -142,7 +142,7 @@ public class DDSHeader {
     protected DDSHeader(ByteBuffer header) throws IOException {
         if (header.capacity() != 124) {
             throw new IOException("Invalid header size. Should be 124 but is " + header.capacity());
-		}
+        }
         
         dwSize              = header.getInt();
         dwFlags             = header.getInt();
@@ -154,8 +154,8 @@ public class DDSHeader {
         
         // Unused bytes
         for (int i = 0; i < dwReserved.length; i++) {
-			dwReserved[i]   = header.getInt();
-		}
+            dwReserved[i]   = header.getInt();
+        }
         
         ddspf               = new DDSPixelFormat(header);
         
@@ -196,10 +196,10 @@ public class DDSHeader {
         
         if (!hasFlagCaps || !hasFlagHeight || !hasFlagWidth || !hasFlagPixelFormat) {
             throw new IOException("Required DDS internal flags missing.");
-		}
+        }
         
         if (!hasCapsTexture) {
             throw new IOException("Required DDS internal caps missing.");
-		}
+        }
     }
 }
