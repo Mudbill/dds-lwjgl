@@ -4,6 +4,9 @@
 // Might automate that later
 val lwjglNatives = "natives-macos-arm64"
 
+group = "net.buttology.lwjgl.dds"
+version = "3.0.0"
+
 plugins {
     id("java-library")
 }
