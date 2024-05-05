@@ -6,3 +6,11 @@ lib/
 .project
 src/engine/
 src/example/
+.idea/
+*.iml
+gradle/
+.gradle/
+build/
+gradlew
+gradlew.bat
+.DS_Store
