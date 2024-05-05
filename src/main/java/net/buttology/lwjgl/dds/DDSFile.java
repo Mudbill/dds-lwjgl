@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018-2021  Magnus Bull
+ * Copyright (C) 2018-2024  Magnus Bull
  *
  *  This file is part of dds-lwjgl.
  *
@@ -35,7 +35,7 @@ import static org.lwjgl.opengl.EXTTextureCompressionRGTC.*;
  * Can load DirectDraw Surface (*.dds) texture files for use in LWJGL.
  * 
  * @author Magnus Bull
- * @version 2.1.0
+ * @version 2.1.1
  */
 public class DDSFile {
     /**
@@ -166,7 +166,7 @@ public class DDSFile {
 
         switch (header.ddspf.sFourCC) {
             case "DXT1":
-                format = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
+                format = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
                 blockSize = 8;
                 break;
             case "DXT3":
