@@ -5,7 +5,7 @@
 val lwjglNatives = "natives-macos-arm64"
 
 group = "net.buttology.lwjgl.dds"
-version = "3.0.0"
+version = "2.1.1"
 
 plugins {
     id("java-library")
