@@ -1,32 +1,54 @@
-dds-lwjgl
-======
+# dds-lwjgl
 
-dds-lwjgl is a small and simple DirectDraw Surface (DDS) file parser made for the Light-Weight Java Game Library.
-It allows you to load DDS texture files for LWJGL, which can be useful as DDS files have the added advantage of being decompressed on the GPU, making for faster load times.
+A small library to add support for DirectDraw Surface textures in LWJGL 3. 
 
-Features
-------------
+DDS textures are useful for improving performance, since they are decompressed on the GPU, decreasing CPU and memory usage.
+Additionally they can include embedded mipmaps, further optimizing the appearance of textures without having to generate them on the fly.
 
-* Supports loading standard headers and DXT10 headers
+## Features
+
+* Supports loading standard headers and DXT10-extended headers
 * Supports loading the compression formats: DXT1 (BC1), DXT3 (BC2), DXT5 (BC3), ATI1 (BC4), ATI2 (BC5), BC6H and BC7
 * Supports loading 2D Textures with and without mipmaps
 * Supports loading 3D Cubemap textures with and without mipmaps
-* Does not support volume maps.
-* Does not support legacy formats.
-* Does not support uncompressed formats.
+* Does **not** support volume maps.
+* Does **not** support legacy formats.
+* Does **not** support uncompressed formats.
 
-This list may change with updates.
+## Install with dependency manager
 
-Usage
------
+Check it out on Maven Central for your dependency manager: https://central.sonatype.com/artifact/io.github.mudbill/dds-lwjgl
 
-[Download the jar](https://github.com/Mudbill/dds-lwjgl/releases) from the releases page and include it in your project's build path, and you'll be able to access the `DDSFile` class. Using it is simple:
+Gradle users can add the following dependency to their build.gradle(.kts):
+
+```kotlin
+implementation("io.github.mudbill:dds-lwjgl:2.1.1")
+```
+
+Maven users can add the following dependency to their pom.xml:
+
+```xml
+<dependency>
+    <groupId>io.github.mudbill</groupId>
+    <artifactId>dds-lwjgl</artifactId>
+    <version>2.1.1</version>
+</dependency>
+```
+
+## Install manually
+
+[Download the jar](https://github.com/Mudbill/dds-lwjgl/releases) from the releases page and include it in your project's build path.
+
+## Usage
+
+There's only one class you need to care about, that being `DDSFile`.
 
 ```java
 DDSFile file = new DDSFile("path/to/file");
 ```
 
-This will immediately load the file at the given path. You can also supply a `File` or `InputStream`. Optionally use the `loadFile` method after initializing the object if you prefer.
+You can supply a string path, `File` instance, or `InputStream` to load the file.
+You can also skip the argument and use the `.loadFile` method later.
 
 To get the texture data and load it into OpenGL, you can do something like this:
 
@@ -64,9 +86,8 @@ GL13.glCompressedTexImage2D(GL13.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, file.getForm
 
 PS: You can check if the file is a cubemap using `isCubeMap()`.
 
-History
--------
+## History
 
 While working on some personal projects, I had the need to load DDS files for my 3D application. Not only is it very tempting to load a format that, from my basic testing, loads nearly 10x as fast as a JPEG texture, but the application I was making relied on external sources, some of which were DDS files.
 
-After looking for such a library, I only came across 1, as well as a few (quite old) threads for writing a parser yourself. Since I couldn't get any of these to do what I wanted, I decided to just sit down and make my own.
+After looking for such a library, I only came across one that I couldn't get to work, as well as a few (quite old) threads for writing a parser yourself. Since I couldn't get any of these to do what I wanted, I decided to just sit down and make my own. It took some fiddling with Microsoft's documentation, but it was a fun exercise.
