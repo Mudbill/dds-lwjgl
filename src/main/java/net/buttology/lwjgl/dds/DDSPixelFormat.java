@@ -3,77 +3,75 @@ package net.buttology.lwjgl.dds;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+/**
+ * Internal class to store the pixel format information from the DDS file header
+ */
 public class DDSPixelFormat {
 
-    /* Flags */
-    protected static final int DDPF_ALPHAPIXELS     = 0x00001;
-    protected static final int DDPF_ALPHA           = 0x00002;
-    protected static final int DDPF_FOURCC          = 0x00004;
-    protected static final int DDPF_RGB             = 0x00040;
-    protected static final int DDPF_YUV             = 0x00200;
-    protected static final int DDPF_LUMINANCE       = 0x20000;
+    static final int DDPF_ALPHAPIXELS     = 0x00001;
+    static final int DDPF_ALPHA           = 0x00002;
+    static final int DDPF_FOURCC          = 0x00004;
+    static final int DDPF_RGB             = 0x00040;
+    static final int DDPF_YUV             = 0x00200;
+    static final int DDPF_LUMINANCE       = 0x20000;
     
     /**
      * Structure size in bytes
      */
-    protected int dwSize;
+    int dwSize;
     
     /**
      * Values which indicate what type of data is in the surface
      */
-    protected int dwFlags;
+    int dwFlags;
     
     /**
      * Four-character code for specifying compressed or custom format
      */
-    protected int dwFourCC;
+    int dwFourCC;
     
     /**
      * Number of bits in an RGB (possibly including alpha) format
      */
-    protected int dwRGBBitCount;
+    int dwRGBBitCount;
     
     /**
-     * Red (or lumiannce or Y) mask for reading color data
+     * Red (or luminance or Y) mask for reading color data
      */
-    protected int dwRBitMask;
+    int dwRBitMask;
     
     /**
      * Green (or U) mask for reading color data
      */
-    protected int dwGBitMask;
+    int dwGBitMask;
     
     /**
      * Blue (or V) mask for reading color data
      */
-    protected int dwBBitMask;
+    int dwBBitMask;
     
     /**
      * Alpha mask for reading alpha data
      */
-    protected int dwABitMask;
+    int dwABitMask;
     
     /**
      * Four-character code's String representation
      */
-    protected String sFourCC;
+    String sFourCC;
     
-    /**
-     * Whether this texture uses compression or not
-     */
-    protected boolean isCompressed;
-    
-    protected boolean hasFlagAlphaPixels;
-    protected boolean hasFlagAlpha;
-    protected boolean hasFlagFourCC;
-    protected boolean hasFlagRgb;
-    protected boolean hasFlagYuv;
-    protected boolean hasFlagLuminance;
+    boolean isCompressed;
+    boolean hasFlagAlphaPixels;
+    boolean hasFlagAlpha;
+    boolean hasFlagFourCC;
+    boolean hasFlagRgb;
+    boolean hasFlagYuv;
+    boolean hasFlagLuminance;
     
     /**
      * Constructs the four-character code's String representation from the integer value.
-     * @param fourCC
-     * @return
+     * @param fourCC bytes to test
+     * @return a string of the given bytes
      */
     private String createFourCCString(int fourCC) {
         byte[] fourCCString = new byte[DDPF_FOURCC];
@@ -84,8 +82,8 @@ public class DDSPixelFormat {
 
         return new String(fourCCString);
     }
-    
-    protected DDSPixelFormat(ByteBuffer header) throws IOException {
+
+    DDSPixelFormat(ByteBuffer header) throws IOException {
         dwSize          = header.getInt();
         dwFlags         = header.getInt();
         dwFourCC        = header.getInt();
@@ -106,6 +104,7 @@ public class DDSPixelFormat {
         
         isCompressed = hasFlagFourCC;
 
+        // File should not specify both RGB and compression at the same time
         if (!isCompressed && !hasFlagRgb) {
             throw new IOException("Invalid compression values.");
         }
