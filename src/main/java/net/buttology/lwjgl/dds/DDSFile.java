@@ -47,6 +47,10 @@ public class DDSFile {
      * The header information for this DDS document 
      */
     private DDSHeader header;
+
+    /**
+     * The extended header information, if present
+     */
     private DDSHeaderDXT10 headerDXT10;
     
     /**
@@ -73,14 +77,17 @@ public class DDSFile {
      * Whether this DDS document is a cubemap or not
      */
     private boolean isCubeMap;
-    
+
+    /**
+     * Empty constructor
+     */
     public DDSFile() {}
 
     /**
      * Loads a DDS file from the given file path.
-     * @param filePath
-     * @throws IOException
-     * @throws FileNotFoundException
+     * @param filePath path to a DDS file
+     * @throws IOException if file is malformed
+     * @throws FileNotFoundException if file is not found
      */
     public DDSFile(String filePath) throws IOException, FileNotFoundException {
         this(new File(filePath));
@@ -88,9 +95,9 @@ public class DDSFile {
 
     /**
      * Loads a DDS file from the given file.
-     * @param file
-     * @throws IOException
-     * @throws FileNotFoundException
+     * @param file File instance for a DDS file
+     * @throws IOException if file is malformed
+     * @throws FileNotFoundException if file is not found
      */
     public DDSFile(File file) throws IOException, FileNotFoundException {
         this.loadFile(file);
@@ -98,8 +105,8 @@ public class DDSFile {
     
     /**
      * Loads a DDS document from the given stream.
-     * @param is
-     * @throws IOException
+     * @param is input stream pointing to a DDS source
+     * @throws IOException if file is malformed
      */
     public DDSFile(InputStream is) throws IOException {
         this.load(is);
@@ -107,9 +114,9 @@ public class DDSFile {
     
     /**
      * Loads a DDS file from the given file path.
-     * @param file
-     * @throws IOException
-     * @throws FileNotFoundException
+     * @param file file path for a DDS file
+     * @throws IOException if file is malformed
+     * @throws FileNotFoundException if file is not found
      */
     public void loadFile(String file) throws IOException, FileNotFoundException {
         this.loadFile(new File(file));
@@ -117,9 +124,9 @@ public class DDSFile {
 
     /**
      * Loads a DDS file from the given file.
-     * @param file
-     * @throws IOException
-     * @throws FileNotFoundException
+     * @param file File instance for a DDS file
+     * @throws IOException if file is malformed
+     * @throws FileNotFoundException if file is not found
      */
     public void loadFile(File file) throws IOException {
         if (!file.isFile()) {
@@ -133,8 +140,8 @@ public class DDSFile {
     
     /**
      * Loads a DDS document from a file stream
-     * @param fis
-     * @throws IOException
+     * @param fis file input stream pointing to a DDS source
+     * @throws IOException if file is malformed
      */
     public void loadFile(FileInputStream fis) throws IOException {
         this.load(fis);
@@ -142,8 +149,8 @@ public class DDSFile {
 
     /**
      * Loads a DDS document
-     * @param stream
-     * @throws IOException
+     * @param stream input stream pointing to a DDS source
+     * @throws IOException if file is malformed
      */
     public void load(InputStream stream) throws IOException {
         if (stream.available() < 128) {
@@ -225,7 +232,7 @@ public class DDSFile {
 
     /**
      * Validate that the first 4 bytes in the given byte array match the magic word for DDS files.
-     * @param bMagic
+     * @param bMagic a byte array to check
      * @return true if DDS file
      */
     public static boolean isDDSFile(byte[] bMagic) {
@@ -234,6 +241,8 @@ public class DDSFile {
     
     /**
      * Creates a new ByteBuffer and stores the data within it before returning it.
+     * @param data byte array to create buffer from
+     * @return a new ByteBuffer instance with the given data
      */
     public static ByteBuffer newByteBuffer(byte[] data) {
         ByteBuffer buffer = ByteBuffer.allocateDirect(data.length).order(ByteOrder.LITTLE_ENDIAN);
@@ -244,7 +253,9 @@ public class DDSFile {
 
     /**
      * Calculate the linear size of the document based on the given block size. Applies to block compression formats.
-     * @param blockSize
+     * @param blockSize the block size (usually 8 or 16)
+     * @param width the width of the texture
+     * @param height the height of the texture
      * @return linear size in bytes
      */
     private int calculateSizeBC(int blockSize, int width, int height) {
@@ -253,7 +264,8 @@ public class DDSFile {
 
     /**
      * Calculate the pitch of the document based on the given block size. Applies to block compression formats.
-     * @param blockSize
+     * @param blockSize the block size (usually 8 or 16)
+     * @param width the width of the texture
      * @return pitch in bytes
      */
     private int calculatePitchBC(int blockSize, int width) {
@@ -270,7 +282,7 @@ public class DDSFile {
 
     /**
      * Get the width of specified mipmap level.
-     * @param level
+     * @param level the mipmap level. Use 0 for the base texture.
      * @return width in pixels
      */
     public int getWidth(int level) {
@@ -287,7 +299,7 @@ public class DDSFile {
 
     /**
      * Get the height of specified mipmap level.
-     * @param level
+     * @param level the mipmap level. Use 0 for the base texture.
      * @return height in pixels
      */
     public int getHeight(int level) {
@@ -296,7 +308,7 @@ public class DDSFile {
 
     /**
      * Gets the main surface data buffer - usually the first full-sized image.
-     * @return
+     * @return binary buffer for the surface data
      */
     public ByteBuffer getBuffer() {
         return getBuffer(0);
@@ -305,6 +317,8 @@ public class DDSFile {
     /**
      * Gets a specific mipmap level from the main surface.
      * If specified outside the range of available mipmaps, the closest one is returned.
+     * @param level the mipmap level. Use 0 for the base texture.
+     * @return binary buffer for the surface data
      */
     public ByteBuffer getBuffer(int level) {
         level = Math.min(Math.min(levels - 1, level), Math.max(level, 0));
@@ -322,8 +336,8 @@ public class DDSFile {
     /**
      * Gets a specific mipmap level from a specific surface.
      * If specified outside the range of available surfaces, the closest one is returned.
-     * @param level
-     * @param surface
+     * @param level the mipmap level. Use 0 for the base texture.
+     * @param surface which surface to get (such as cubemap side)
      * @return closest image buffer
      */
     public ByteBuffer getBuffer(int level, int surface) {
@@ -396,6 +410,7 @@ public class DDSFile {
 
     /**
      * Get the surface buffer of the given mipmap level from the positive X direction of a cubemap. If this document is not a cubemap, null is returned.
+     * @param level the mipmap level. Use 0 for the base texture.
      * @return positive X buffer, or null if not cubemap.
      */
     public ByteBuffer getCubeMapPositiveXMipLevel(int level) {
@@ -405,6 +420,7 @@ public class DDSFile {
 
     /**
      * Get the surface buffer of the given mipmap level from the negative X direction of a cubemap. If this document is not a cubemap, null is returned.
+     * @param level the mipmap level. Use 0 for the base texture.
      * @return negative X buffer, or null if not cubemap.
      */
     public ByteBuffer getCubeMapNegativeXMipLevel(int level) {
@@ -414,6 +430,7 @@ public class DDSFile {
 
     /**
      * Get the surface buffer of the given mipmap level from the positive Y direction of a cubemap. If this document is not a cubemap, null is returned.
+     * @param level the mipmap level. Use 0 for the base texture.
      * @return positive Y buffer, or null if not cubemap.
      */
     public ByteBuffer getCubeMapPositiveYMipLevel(int level) {
@@ -423,6 +440,7 @@ public class DDSFile {
 
     /**
      * Get the surface buffer of the given mipmap level from the negative Y direction of a cubemap. If this document is not a cubemap, null is returned.
+     * @param level the mipmap level. Use 0 for the base texture.
      * @return negative Y buffer, or null if not cubemap.
      */
     public ByteBuffer getCubeMapNegativeYMipLevel(int level) {
@@ -432,6 +450,7 @@ public class DDSFile {
 
     /**
      * Get the surface buffer of the given mipmap level from the positive Z direction of a cubemap. If this document is not a cubemap, null is returned.
+     * @param level the mipmap level. Use 0 for the base texture.
      * @return positive Z buffer, or null if not cubemap.
      */
     public ByteBuffer getCubeMapPositiveZMipLevel(int level) {
@@ -441,6 +460,7 @@ public class DDSFile {
 
     /**
      * Get the surface buffer of the given mipmap level from the negative Z direction of a cubemap. If this document is not a cubemap, null is returned.
+     * @param level the mipmap level. Use 0 for the base texture.
      * @return negative Z buffer, or null if not cubemap.
      */
     public ByteBuffer getCubeMapNegativeZMipLevel(int level) {
