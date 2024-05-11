@@ -28,8 +28,9 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
-import static org.lwjgl.opengl.EXTTextureCompressionS3TC.*;
-import static org.lwjgl.opengl.EXTTextureCompressionRGTC.*;
+
+import org.lwjgl.opengl.EXTTextureCompressionS3TC;
+import org.lwjgl.opengl.EXTTextureCompressionRGTC;
 
 /** 
  * Can load DirectDraw Surface (*.dds) texture files for use in LWJGL.
@@ -173,21 +174,21 @@ public class DDSFile {
 
         switch (header.ddspf.sFourCC) {
             case "DXT1":
-                format = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+                format = EXTTextureCompressionS3TC.GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
                 blockSize = 8;
                 break;
             case "DXT3":
-                format = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+                format = EXTTextureCompressionS3TC.GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
                 break;
             case "DXT5":
-                format = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+                format = EXTTextureCompressionS3TC.GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
                 break;
             case "ATI1":
-                format = GL_COMPRESSED_RED_RGTC1_EXT;
+                format = EXTTextureCompressionRGTC.GL_COMPRESSED_RED_RGTC1_EXT;
                 blockSize = 8;
                 break;
             case "ATI2":
-                format = GL_COMPRESSED_RED_GREEN_RGTC2_EXT;
+                format = EXTTextureCompressionRGTC.GL_COMPRESSED_RED_GREEN_RGTC2_EXT;
                 break;
             case "DX10":
                 byte[] bHeaderDXT10 = new byte[20];

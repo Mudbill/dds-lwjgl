@@ -1,11 +1,12 @@
 package io.github.mudbill.dds;
 
-import org.lwjgl.opengl.*;
-import static org.lwjgl.opengl.EXTTextureCompressionS3TC.*;
-import static org.lwjgl.opengl.EXTTextureCompressionRGTC.*;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
+
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL42;
+import org.lwjgl.opengl.EXTTextureCompressionS3TC;
+import org.lwjgl.opengl.EXTTextureCompressionRGTC;
 
 class DDSHeaderDXT10 {
     static final int DDS_DIMENSION_TEXTURE1D          = 0x2;
@@ -45,24 +46,24 @@ class DDSHeaderDXT10 {
             throw new IOException("DXT10 header needs 20 bytes");
         }
 
-        dxgiFormat = header.getInt();
-        resourceDimension = header.getInt();
-        miscFlag = header.getInt();
-        arraySize = header.getInt();
-        miscFlags2 = header.getInt();
+        dxgiFormat          = header.getInt();
+        resourceDimension   = header.getInt();
+        miscFlag            = header.getInt();
+        arraySize           = header.getInt();
+        miscFlags2          = header.getInt();
 
         isTextureCube = (miscFlag & DDS_RESOURCE_MISC_TEXTURECUBE) == DDS_RESOURCE_MISC_TEXTURECUBE;
     }
 
     public int getFormat() {
         switch (dxgiFormat) {
-            case DXGI_FORMAT_BC1_UNORM:         return GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
-            case DXGI_FORMAT_BC2_UNORM:         return GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
-            case DXGI_FORMAT_BC3_UNORM:         return GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
-            case DXGI_FORMAT_BC4_UNORM:         return GL_COMPRESSED_RED_RGTC1_EXT;
-            case DXGI_FORMAT_BC4_SNORM:         return GL_COMPRESSED_SIGNED_RED_RGTC1_EXT;
-            case DXGI_FORMAT_BC5_UNORM:         return GL_COMPRESSED_RED_GREEN_RGTC2_EXT;
-            case DXGI_FORMAT_BC5_SNORM:         return GL_COMPRESSED_SIGNED_RED_GREEN_RGTC2_EXT;
+            case DXGI_FORMAT_BC1_UNORM:         return EXTTextureCompressionS3TC.GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+            case DXGI_FORMAT_BC2_UNORM:         return EXTTextureCompressionS3TC.GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+            case DXGI_FORMAT_BC3_UNORM:         return EXTTextureCompressionS3TC.GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+            case DXGI_FORMAT_BC4_UNORM:         return EXTTextureCompressionRGTC.GL_COMPRESSED_RED_RGTC1_EXT;
+            case DXGI_FORMAT_BC4_SNORM:         return EXTTextureCompressionRGTC.GL_COMPRESSED_SIGNED_RED_RGTC1_EXT;
+            case DXGI_FORMAT_BC5_UNORM:         return EXTTextureCompressionRGTC.GL_COMPRESSED_RED_GREEN_RGTC2_EXT;
+            case DXGI_FORMAT_BC5_SNORM:         return EXTTextureCompressionRGTC.GL_COMPRESSED_SIGNED_RED_GREEN_RGTC2_EXT;
             case DXGI_FORMAT_BC6H_UF16:         return GL42.GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT;
             case DXGI_FORMAT_BC6H_SF16:         return GL42.GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT;
             case DXGI_FORMAT_BC7_UNORM:         return GL42.GL_COMPRESSED_RGBA_BPTC_UNORM;
