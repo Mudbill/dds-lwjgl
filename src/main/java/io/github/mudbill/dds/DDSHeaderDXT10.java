@@ -1,4 +1,4 @@
-package net.buttology.lwjgl.dds;
+package io.github.mudbill.dds;
 
 import org.lwjgl.opengl.*;
 import static org.lwjgl.opengl.EXTTextureCompressionS3TC.*;

@@ -41,7 +41,7 @@ Maven users can add the following dependency to their pom.xml:
 
 ## Usage
 
-There's only one class you need to care about, that being `net.buttology.lwjgl.dds.DDSFile`.
+There's only one class you need to care about, that being `io.github.mudbill.dds.DDSFile`.
 
 ```java
 DDSFile file = new DDSFile("path/to/file");

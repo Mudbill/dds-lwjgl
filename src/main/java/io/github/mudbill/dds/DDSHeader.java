@@ -1,4 +1,4 @@
-package net.buttology.lwjgl.dds;
+package io.github.mudbill.dds;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

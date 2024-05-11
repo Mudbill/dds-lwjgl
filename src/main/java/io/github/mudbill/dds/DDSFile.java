@@ -17,7 +17,7 @@
  *  along with dds-lwjgl.  If not, see <https://www.gnu.org/licenses/>. 
  */
 
-package net.buttology.lwjgl.dds;
+package io.github.mudbill.dds;
 
 import java.io.File;
 import java.io.FileInputStream;

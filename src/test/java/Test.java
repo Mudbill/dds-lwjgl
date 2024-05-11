@@ -5,7 +5,7 @@
  * is just boilerplate for setting up a LWJGL rendering context.
  */
 
-import net.buttology.lwjgl.dds.DDSFile;
+import io.github.mudbill.dds.DDSFile;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.*;
