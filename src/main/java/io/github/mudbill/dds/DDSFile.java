@@ -35,7 +35,7 @@ import static org.lwjgl.opengl.EXTTextureCompressionRGTC.*;
  * Can load DirectDraw Surface (*.dds) texture files for use in LWJGL.
  * 
  * @author Magnus Bull
- * @version 2.1.1
+ * @version 3.0.0
  */
 public class DDSFile {
     /**
