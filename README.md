@@ -22,7 +22,7 @@ Check it out on Maven Central for your dependency manager: https://central.sonat
 Gradle users can add the following dependency to their build.gradle(.kts):
 
 ```kotlin
-implementation("io.github.mudbill:dds-lwjgl:2.1.1")
+implementation("io.github.mudbill:dds-lwjgl:3.0.0")
 ```
 
 Maven users can add the following dependency to their pom.xml:
@@ -31,7 +31,7 @@ Maven users can add the following dependency to their pom.xml:
 <dependency>
     <groupId>io.github.mudbill</groupId>
     <artifactId>dds-lwjgl</artifactId>
-    <version>2.1.1</version>
+    <version>3.0.0</version>
 </dependency>
 ```
 
