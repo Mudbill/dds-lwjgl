@@ -37,6 +37,14 @@ plugins {
 java {
     withSourcesJar()
     withJavadocJar()
+
+    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_1_8
+}
+
+// Make the compiled code compatible with Java 1.8
+tasks.withType<JavaCompile> {
+    options.release = 8
 }
 
 repositories {
