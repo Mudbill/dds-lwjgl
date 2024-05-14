@@ -64,6 +64,11 @@ dependencies {
 }
 
 publishing {
+    repositories {
+        maven {
+            url = uri(layout.buildDirectory.dir("repository"))
+        }
+    }
     publications {
         create<MavenPublication>("java") {
             from(components["java"])
