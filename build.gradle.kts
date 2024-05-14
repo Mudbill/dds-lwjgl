@@ -50,10 +50,11 @@ tasks.withType<JavaCompile> {
 repositories {
     mavenCentral()
 }
+val lwjglVersion = "3.3.0"
 
 dependencies {
     // Support all version of 3, but not 4 (because at this time there is no 4 so it should be tested first)
-    implementation(platform("org.lwjgl:lwjgl-bom:[3, 4["))
+    implementation(platform("org.lwjgl:lwjgl-bom:$lwjglVersion"))
     implementation("org.lwjgl", "lwjgl-opengl")
 
     testRuntimeOnly("org.lwjgl", "lwjgl", classifier = lwjglNatives)
