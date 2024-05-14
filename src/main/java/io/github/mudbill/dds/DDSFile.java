@@ -204,11 +204,11 @@ public class DDSFile {
 
         if (header.hasCaps2CubeMap || (headerDXT10 != null && headerDXT10.isTextureCube)) {
             surfaceCount = 6;
-            isCubeMap = true; 
         } else {
             surfaceCount = 1;
-            isCubeMap = false;
         }
+
+        isCubeMap = surfaceCount == 6;
 
         if (headerDXT10 != null && headerDXT10.arraySize > 1) {
             surfaceCount *= headerDXT10.arraySize;

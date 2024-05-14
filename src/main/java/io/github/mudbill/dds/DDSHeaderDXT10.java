@@ -9,17 +9,17 @@ import org.lwjgl.opengl.EXTTextureCompressionS3TC;
 import org.lwjgl.opengl.EXTTextureCompressionRGTC;
 
 class DDSHeaderDXT10 {
-    static final int DDS_DIMENSION_TEXTURE1D          = 0x2;
-    static final int DDS_DIMENSION_TEXTURE2D          = 0x3;
-    static final int DDS_DIMENSION_TEXTURE3D          = 0x4;
+//    static final int DDS_DIMENSION_TEXTURE1D          = 0x2;
+//    static final int DDS_DIMENSION_TEXTURE2D          = 0x3;
+//    static final int DDS_DIMENSION_TEXTURE3D          = 0x4;
 
     static final int DDS_RESOURCE_MISC_TEXTURECUBE    = 0x4;
 
-    static final int DDS_ALPHA_MODE_UNKNOWN           = 0x0;
-    static final int DDS_ALPHA_MODE_STRAIGHT          = 0x1;
-    static final int DDS_ALPHA_MODE_PREMULTIPLIED     = 0x2;
-    static final int DDS_ALPHA_MODE_OPAQUE            = 0x3;
-    static final int DDS_ALPHA_MODE_CUSTOM            = 0x4;
+//    static final int DDS_ALPHA_MODE_UNKNOWN           = 0x0;
+//    static final int DDS_ALPHA_MODE_STRAIGHT          = 0x1;
+//    static final int DDS_ALPHA_MODE_PREMULTIPLIED     = 0x2;
+//    static final int DDS_ALPHA_MODE_OPAQUE            = 0x3;
+//    static final int DDS_ALPHA_MODE_CUSTOM            = 0x4;
 
     static final int DXGI_FORMAT_BC1_UNORM            = 71;
     static final int DXGI_FORMAT_BC2_UNORM            = 74;
