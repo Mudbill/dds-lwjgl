@@ -25,8 +25,8 @@ import static org.lwjgl.system.MemoryStack.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
 public class Test {
-    private static final int WINDOW_WIDTH = 200;
-    private static final int WINDOW_HEIGHT = 200;
+    private static final int WINDOW_WIDTH = 400;
+    private static final int WINDOW_HEIGHT = 400;
 
     // The window handle
     private long window;
@@ -178,16 +178,20 @@ public class Test {
         glTexParameteri(GL_TEXTURE_2D, GL12.GL_TEXTURE_BASE_LEVEL, 0);
         glTexParameteri(GL_TEXTURE_2D, GL12.GL_TEXTURE_MAX_LEVEL, ddsFile.getMipMapCount() - 1);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_NEAREST);
 
         // Run the rendering loop until the user has attempted to close
         // the window or has pressed the ESCAPE key.
         while ( !glfwWindowShouldClose(window) ) {
+            double time = glfwGetTime();
+            float red = (float) (Math.sin(time) + 0.1f);
+            float green = (float) (Math.sin(time) + 0.2f);
+            float blue = (float) (Math.sin(time) + 0.3f);
             // Set the default background color
-            glClearColor(0.2f, 0.5f, 0.5f, 1.0f);
+            glClearColor(red, green, blue, 1.0f);
             // clear the framebuffer
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
